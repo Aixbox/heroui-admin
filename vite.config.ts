@@ -12,6 +12,11 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
+  server: {
+    proxy: {
+      "/api": "http://localhost:8787",
+    },
+  },
   build: {
     // esbuild chokes on Tailwind v4 empty :is() from @apply motion-reduce
     cssMinify: "lightningcss",
