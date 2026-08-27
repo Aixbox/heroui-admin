@@ -1,9 +1,9 @@
 import { redirect } from "react-router";
-import { api, type User } from "./api";
+import { mockApi, type User } from "./mock-api";
 
 export async function requireUser(request: Request): Promise<User> {
   try {
-    const result = await api.me({ headers: { Cookie: request.headers.get("Cookie") ?? "" } });
+    const result = await mockApi.me({ headers: { Cookie: request.headers.get("Cookie") ?? "" } });
     return result.user;
   } catch {
     throw redirect(`/login?redirectTo=${encodeURIComponent(new URL(request.url).pathname)}`);

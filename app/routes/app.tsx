@@ -1,7 +1,7 @@
 import { Button, Link, Separator } from "@heroui/react";
 import { useEffect } from "react";
 import { NavLink, Outlet, useLoaderData, useLocation, useNavigate, type LoaderFunctionArgs, type MetaFunction } from "react-router";
-import { api } from "~/lib/api";
+import { mockApi } from "~/lib/mock-api";
 import { requireUser } from "~/lib/auth";
 import { useAuthStore } from "~/stores/auth";
 import { AppIcon } from "~/components/app-icon";
@@ -38,7 +38,7 @@ export default function AppLayout() {
           {links.map((item) => <NavLink key={item.href} end={item.end} className={({ isActive }) => `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm no-underline transition ${isActive ? "bg-accent/12 font-medium text-accent" : "text-muted hover:bg-surface-secondary hover:text-foreground"}`} to={item.href}><AppIcon className="size-4" name={item.icon} />{item.label}</NavLink>)}
         </nav>
         <Separator className="my-4" />
-        <div className="flex items-center gap-3 px-3 py-2"><div className="grid size-9 place-items-center rounded-full bg-accent/15 text-sm font-semibold text-accent">{user.name.slice(0, 1)}</div><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{user.name}</p><p className="truncate text-xs text-muted">{user.email}</p></div><Button isIconOnly aria-label="退出登录" size="sm" variant="ghost" onPress={async () => { await api.logout(); navigate("/login", { replace: true }); }}><AppIcon className="size-4" name="logout" /></Button></div>
+        <div className="flex items-center gap-3 px-3 py-2"><div className="grid size-9 place-items-center rounded-full bg-accent/15 text-sm font-semibold text-accent">{user.name.slice(0, 1)}</div><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{user.name}</p><p className="truncate text-xs text-muted">{user.email}</p></div><Button isIconOnly aria-label="退出登录" size="sm" variant="ghost" onPress={async () => { await mockApi.logout(); navigate("/login", { replace: true }); }}><AppIcon className="size-4" name="logout" /></Button></div>
       </aside>
       <div className="lg:pl-64">
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-separator bg-background/80 px-4 backdrop-blur-lg sm:px-8"><div><p className="text-sm text-muted">{location.pathname === "/app" ? "工作区概览" : "Acme Admin"}</p><h1 className="text-lg font-semibold">欢迎回来，{user.name.split(" ")[0]}</h1></div><div className="flex items-center gap-3"><span className="hidden rounded-full bg-success/12 px-3 py-1 text-xs font-medium text-success sm:inline">系统运行正常</span><div className="grid size-9 place-items-center rounded-full bg-accent/15 text-sm font-semibold text-accent">{user.name.slice(0, 1)}</div></div></header>

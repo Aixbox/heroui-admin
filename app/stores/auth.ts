@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { api, type User } from "~/lib/api";
+import { mockApi, type User } from "~/lib/mock-api";
 
 interface AuthState {
   user: User | null;
@@ -11,7 +11,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   setUser: (user) => set({ user }),
   logout: async () => {
-    await api.logout();
+    await mockApi.logout();
     set({ user: null });
   },
 }));

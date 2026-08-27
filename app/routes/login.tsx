@@ -2,9 +2,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Card, FieldError, Form, Input, Label, TextField } from "@heroui/react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { redirect, useNavigate, useSearchParams, type LoaderFunctionArgs, type MetaFunction } from "react-router";
+import { data, redirect, useActionData, useNavigate, useSearchParams, type ActionFunctionArgs, type LoaderFunctionArgs, type MetaFunction } from "react-router";
 import { z } from "zod";
-import { api } from "~/lib/api";
+import { mockApi } from "~/lib/mock-api";
 import { useAuthStore } from "~/stores/auth";
 
 const schema = z.object({
@@ -17,16 +17,39 @@ export const meta: MetaFunction = () => [{ title: "登录 · Acme Admin" }];
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
-    await api.me({ headers: { Cookie: request.headers.get("Cookie") ?? "" } });
+    await mockApi.me({ headers: { Cookie: request.headers.get("Cookie") ?? "" } });
     return redirect("/app");
   } catch {
     return null;
   }
 }
 
+export async function action({ request }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const result = schema.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+  });
+  if (!result.success) return data({ error: "请检查邮箱和密码格式" }, { status: 400 });
+
+  const response = await fetch(`${process.env.MOCK_API_URL ?? "http://localhost:8787"}/mock-api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(result.data),
+  });
+  const payload = (await response.json()) as { message?: string };
+  if (!response.ok) return data({ error: payload.message ?? "登录失败" }, { status: response.status });
+
+  const redirectTo = String(formData.get("redirectTo") || "/app");
+  const safeRedirect = redirectTo.startsWith("/") && !redirectTo.startsWith("//") ? redirectTo : "/app";
+  const setCookie = response.headers.get("Set-Cookie");
+  return redirect(safeRedirect, { headers: setCookie ? { "Set-Cookie": setCookie } : undefined });
+}
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const actionData = useActionData<typeof action>();
   const setUser = useAuthStore((state) => state.setUser);
   const [serverError, setServerError] = useState("");
   const { control, handleSubmit, formState: { isSubmitting } } = useForm<LoginValues>({
@@ -37,7 +60,7 @@ export default function LoginPage() {
   const onSubmit = handleSubmit(async (values) => {
     setServerError("");
     try {
-      const { user } = await api.login(values.email, values.password);
+      const { user } = await mockApi.login(values.email, values.password);
       setUser(user);
       navigate(searchParams.get("redirectTo") || "/app", { replace: true });
     } catch (error) {
@@ -51,10 +74,11 @@ export default function LoginPage() {
         <Card.Header className="flex-col items-start gap-2 p-6 pb-2">
           <div className="grid size-11 place-items-center rounded-xl bg-accent text-lg font-bold text-accent-foreground">A</div>
           <Card.Title className="text-2xl">登录 Acme Admin</Card.Title>
-          <Card.Description>使用演示账号进入受保护的后台工作区。</Card.Description>
+          <Card.Description>使用 Mock 演示账号进入受保护的后台工作区。</Card.Description>
         </Card.Header>
         <Card.Content className="p-6 pt-4">
-          <Form className="flex flex-col gap-5" onSubmit={onSubmit} validationBehavior="aria">
+          <Form className="flex flex-col gap-5" method="post" onSubmit={onSubmit} validationBehavior="aria">
+            <input name="redirectTo" type="hidden" value={searchParams.get("redirectTo") || "/app"} />
             <Controller control={control} name="email" render={({ field, fieldState }) => (
               <TextField fullWidth isInvalid={fieldState.invalid} name={field.name} value={field.value} onChange={field.onChange}>
                 <Label>邮箱</Label><Input autoComplete="email" placeholder="admin@acme.com" type="email" />
@@ -67,7 +91,7 @@ export default function LoginPage() {
                 {fieldState.error ? <FieldError>{fieldState.error.message}</FieldError> : null}
               </TextField>
             )} />
-            {serverError ? <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{serverError}</p> : null}
+            {serverError || actionData?.error ? <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{serverError || actionData?.error}</p> : null}
             <Button fullWidth isPending={isSubmitting} type="submit" variant="primary">{isSubmitting ? "登录中…" : "登录"}</Button>
           </Form>
           <div className="mt-5 rounded-xl bg-surface-secondary p-3 text-sm text-muted">

@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "react-router build",
-    "dev": "react-router dev",
-    "dev:api": "node api/server.mjs",
+    "dev": "node scripts/dev.mjs",
+    "dev:web": "react-router dev",
+    "dev:mock-api": "node mock-api/server.mjs",
     "start": "wrangler dev",
     "deploy": "react-router build && wrangler deploy",
     "lint": "eslint --fix",
