@@ -30,7 +30,7 @@ export default function AppLayout() {
     <div className="min-h-screen bg-background text-foreground">
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-separator bg-surface/60 px-4 py-5 lg:flex lg:flex-col">
         <Link className="mb-8 flex items-center gap-3 px-3 text-foreground no-underline" href="/app">
-          <span className="grid size-9 place-items-center rounded-xl bg-accent font-bold text-accent-foreground">A</span>
+          <span className="grid size-9 place-items-center rounded-xl bg-accent text-accent-foreground"><img alt="Acme Admin" className="size-6 object-contain brightness-0 invert" src="/logo.svg" /></span>
           <span><strong className="block">Acme Admin</strong><small className="text-muted">运营控制台</small></span>
         </Link>
         <nav className="flex flex-1 flex-col gap-1">
