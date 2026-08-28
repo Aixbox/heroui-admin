@@ -161,6 +161,19 @@ export default function LoginPage() {
     document.documentElement.lang = nextLanguage === "zh" ? "zh-CN" : "en";
   };
 
+  const toggleTheme = () => {
+    const nextTheme = isDark ? "light" : "dark";
+    const documentWithViewTransition = document as Document & {
+      startViewTransition?: (callback: () => void) => unknown;
+    };
+
+    if (documentWithViewTransition.startViewTransition) {
+      documentWithViewTransition.startViewTransition(() => setTheme(nextTheme));
+    } else {
+      setTheme(nextTheme);
+    }
+  };
+
   return (
     <main className="grid min-h-screen gap-8 bg-background p-3 text-foreground sm:p-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(390px,0.85fr)] lg:gap-12 lg:p-7">
       <section
@@ -175,7 +188,7 @@ export default function LoginPage() {
             <Languages aria-hidden="true" className="size-4" />
             {language === "zh" ? "EN" : "中文"}
           </Button>
-          <Button isIconOnly aria-label={isDark ? t.lightTheme : t.darkTheme} type="button" onPress={() => setTheme(isDark ? "light" : "dark")}>
+          <Button isIconOnly aria-label={isDark ? t.lightTheme : t.darkTheme} type="button" onPress={toggleTheme}>
             <ButtonGroup.Separator />
             {isDark ? <Sun aria-hidden="true" className="size-4" /> : <Moon aria-hidden="true" className="size-4" />}
           </Button>
