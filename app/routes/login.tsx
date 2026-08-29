@@ -161,6 +161,23 @@ export default function LoginPage() {
     document.documentElement.lang = nextLanguage === "zh" ? "zh-CN" : "en";
   };
 
+  const toggleTheme = (theme: "light" | "dark") => {
+    const applyTheme = () => {
+      const root = document.documentElement;
+      root.classList.remove("light", "dark");
+      root.classList.add(theme);
+      root.dataset.theme = theme;
+      setTheme(theme);
+    };
+
+    if (typeof document.startViewTransition !== "function") {
+      applyTheme();
+      return;
+    }
+
+    document.startViewTransition(applyTheme);
+  };
+
   return (
     <main className="grid min-h-screen gap-8 bg-background p-3 text-foreground sm:p-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(390px,0.85fr)] lg:gap-12 lg:p-7">
       <section
@@ -175,7 +192,7 @@ export default function LoginPage() {
             <Languages aria-hidden="true" className="size-4" />
             {language === "zh" ? "EN" : "中文"}
           </Button>
-          <Button isIconOnly aria-label={isDark ? t.lightTheme : t.darkTheme} type="button" onPress={() => setTheme(isDark ? "light" : "dark")}>
+          <Button isIconOnly aria-label={isDark ? t.lightTheme : t.darkTheme} type="button" onPress={() => toggleTheme(isDark ? "light" : "dark")}>
             <ButtonGroup.Separator />
             {isDark ? <Sun aria-hidden="true" className="size-4" /> : <Moon aria-hidden="true" className="size-4" />}
           </Button>
