@@ -1,10 +1,11 @@
-import { ChartNoAxesCombined, LayoutDashboard, LogOut, Menu, Settings, Users, type LucideProps } from "lucide-react";
+import { ChartNoAxesCombined, LayoutDashboard, LogOut, Menu, Settings, SlidersHorizontal, Users, type LucideProps } from "lucide-react";
 import type { ComponentType } from "react";
 
 const icons = {
   dashboard: LayoutDashboard,
   users: Users,
   settings: Settings,
+  configuration: SlidersHorizontal,
   menu: Menu,
   logout: LogOut,
   analytics: ChartNoAxesCombined,
