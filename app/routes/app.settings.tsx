@@ -25,7 +25,13 @@ export default function SettingsPage() {
                 <p className="font-medium">{label}</p>
                 <p className="text-sm text-muted">通过邮件发送通知</p>
               </div>
-              <Switch defaultSelected={index < 2} aria-label={label} />
+              <Switch defaultSelected={index < 2} aria-label={label}>
+                <Switch.Content>
+                  <Switch.Control>
+                    <Switch.Thumb />
+                  </Switch.Control>
+                </Switch.Content>
+              </Switch>
             </div>
           ))}
         </Card.Content>

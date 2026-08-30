@@ -1,8 +1,7 @@
-import { Modal } from "@heroui/react";
+import { Modal, SearchField } from "@heroui/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import type { SidebarNavigationItem } from "~/components/sidebar-navigation";
-import { AppIcon } from "~/components/app-icon";
 import { useT } from "~/lib/i18n";
 
 type CommandPaletteProps = {
@@ -45,15 +44,19 @@ export function CommandPalette({ isOpen, onOpenChange, items }: CommandPalettePr
         <Modal.Container placement="top">
           <Modal.Dialog className="max-w-lg">
             <Modal.Body>
-              <div className="flex items-center gap-2 border-b border-separator pb-3">
-                <AppIcon className="size-4 shrink-0 text-muted" name="search" />
-                <input
-                  ref={inputRef}
-                  className="w-full bg-transparent text-sm outline-none placeholder:text-muted"
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder={t("搜索菜单与页面")}
-                  value={query}
-                />
+              <div className="border-b border-separator pb-3">
+                {/* Surface（Modal）内的 field 类组件一律 secondary 变体 */}
+                <SearchField aria-label={t("搜索")} variant="secondary" value={query} onChange={setQuery}>
+                  <SearchField.Group className="flex items-center gap-2">
+                    <SearchField.SearchIcon className="size-4 shrink-0 text-muted" />
+                    <SearchField.Input
+                      ref={inputRef}
+                      className="w-full bg-transparent text-sm outline-none placeholder:text-muted"
+                      placeholder={t("搜索菜单与页面")}
+                    />
+                    <SearchField.ClearButton className="text-muted" />
+                  </SearchField.Group>
+                </SearchField>
               </div>
               <div className="max-h-80 overflow-y-auto pt-1">
                 {filtered.length === 0 ? (

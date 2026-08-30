@@ -1,5 +1,5 @@
-import { Breadcrumbs, Button, Drawer, Link, Popover, useTheme } from "@heroui/react";
-import { useEffect, useMemo, useState } from "react";
+import { Avatar, Badge, Breadcrumbs, Button, Drawer, Link, Popover, useOverlayState, useTheme } from "@heroui/react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Outlet,
   useLoaderData,
@@ -71,6 +71,7 @@ export default function AppLayout() {
   const [fullWidth, setFullWidth] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const notifState = useOverlayState();
   const [notifications, setNotifications] = useState(initialNotifications);
   const { resolvedTheme, setTheme } = useTheme("system");
   const locale = useUiStore((state) => state.locale);
@@ -101,6 +102,21 @@ export default function AppLayout() {
 
   const unreadCount = notifications.filter((item) => item.unread).length;
   const markAllRead = () => setNotifications((list) => list.map((item) => ({ ...item, unread: false })));
+
+  // 通知面板：悬停铃铛或面板时保持打开，移出 150ms 后关闭（定时器用于跨越两者间隙时不闪烁）
+  const notifCloseTimer = useRef<number | null>(null);
+  const openNotifications = () => {
+    if (notifCloseTimer.current) window.clearTimeout(notifCloseTimer.current);
+    notifState.open();
+  };
+  const scheduleCloseNotifications = () => {
+    notifCloseTimer.current = window.setTimeout(() => notifState.close(), 150);
+  };
+  useEffect(() => {
+    return () => {
+      if (notifCloseTimer.current) window.clearTimeout(notifCloseTimer.current);
+    };
+  }, []);
 
   // 面包屑：在导航树中查找当前路径的层级链，找不到时回退到「概览」
   const trail = useMemo(() => {
@@ -248,16 +264,31 @@ export default function AppLayout() {
               {locale === "zh" ? "EN" : "中"}
             </Button>
             <Popover>
-              <Button isIconOnly aria-label={t("通知")} className="relative" size="sm" variant="ghost">
-                <AppIcon className="size-4" name="bell" />
+              <Badge.Anchor onPointerEnter={openNotifications} onPointerLeave={scheduleCloseNotifications}>
+                <Button isIconOnly aria-label={t("通知")} size="sm" variant="ghost" onPress={() => notifState.toggle()}>
+                  <AppIcon className="size-4" name="bell" />
+                </Button>
                 {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 grid size-4 place-items-center rounded-full bg-danger text-[10px] font-medium text-white">
-                    {unreadCount}
-                  </span>
+                  <Badge color="danger" placement="top-right" size="sm">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </Badge>
                 )}
-              </Button>
-              <Popover.Content placement="bottom end" offset={8}>
-                <div className="w-80 rounded-xl border border-separator bg-surface p-2 shadow-lg">
+              </Badge.Anchor>
+              {/* 受控属性放在 Content 上（对应官方 Modal.Backdrop 的受控模式）；isNonModal 关闭
+                  RAC Popover 默认的模态行为（滚动锁定 + 遮挡页面交互），否则悬停打开会引发
+                  「滚动条消失 → 布局横移 → 鼠标脱离按钮 → 关闭」的死循环 */}
+              <Popover.Content
+                isNonModal
+                isOpen={notifState.isOpen}
+                onOpenChange={notifState.setOpen}
+                placement="bottom end"
+                offset={8}
+              >
+                <div
+                  className="w-80 rounded-xl border border-separator bg-surface p-2 shadow-lg"
+                  onPointerEnter={openNotifications}
+                  onPointerLeave={scheduleCloseNotifications}
+                >
                   <div className="flex items-center justify-between px-2 py-1">
                     <p className="text-sm font-semibold">{t("通知")}</p>
                     <Button isDisabled={unreadCount === 0} size="sm" variant="ghost" onPress={markAllRead}>
@@ -288,18 +319,22 @@ export default function AppLayout() {
                 type="button"
                 className="flex items-center gap-2.5 rounded-full py-1.5 pr-3 pl-1.5 text-left transition hover:bg-surface-secondary"
               >
-                <div className="grid size-9 shrink-0 place-items-center rounded-full bg-accent/15 text-sm font-semibold text-accent">
-                  {user.name.slice(0, 1)}
-                </div>
+                <Avatar className="size-9 shrink-0">
+                  <Avatar.Fallback className="bg-accent/15 text-sm font-semibold text-accent">
+                    {user.name.slice(0, 1)}
+                  </Avatar.Fallback>
+                </Avatar>
                 <span className="hidden text-sm font-medium sm:inline">{user.name}</span>
               </button>
               {/* 悬停/聚焦用户区域弹出的信息卡片；卡片是 group 子元素，指针移入卡片不会中断悬停，pt-2 作为过渡桥 */}
               <div className="pointer-events-none invisible absolute top-full right-0 z-20 translate-y-1 pt-2 opacity-0 transition-all duration-150 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
                 <div className="w-64 rounded-xl border border-separator bg-surface p-4 shadow-lg">
                   <div className="flex items-center gap-3">
-                    <div className="grid size-10 shrink-0 place-items-center rounded-full bg-accent/15 text-sm font-semibold text-accent">
-                      {user.name.slice(0, 1)}
-                    </div>
+                    <Avatar className="size-10 shrink-0">
+                      <Avatar.Fallback className="bg-accent/15 text-sm font-semibold text-accent">
+                        {user.name.slice(0, 1)}
+                      </Avatar.Fallback>
+                    </Avatar>
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold">{user.name}</p>
                       <p className="truncate text-xs text-muted">{user.email}</p>

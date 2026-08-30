@@ -15,8 +15,19 @@
   - 常用降级手段：次要顶栏控件 `hidden sm:inline-flex`、长文本 `truncate` 或 `hidden sm:inline`、宽表格/卡片允许横向滚动；
   - 交付说明中注明本次改动在窄屏下的表现，由用户自行在窄屏确认（遵守禁用浏览器验证的规则）。
 
+## HeroUI 组件使用审计清单（写新页面前逐条自查，勿删）
+
+- **使用任何 HeroUI 组件前，先看 `.heroui-docs/react/demos/cn/<组件名>/` 下的官方 demo**，从 demo 复制结构再改业务。**禁止从项目既有代码复制组件结构**——既有代码可能是模板遗留的错误写法，直接抄会以讹传讹。本项目实际踩过的坑（都已修复，勿回退）：
+  - 裸 `<Switch aria-label>` 不渲染滑轨（缺 `Switch.Content/Control/Thumb` 结构，开关在页面上不可见）；
+  - Card 包裹 Table（Table primary 变体自带灰底 Surface，双层嵌套）；
+  - Card 内 Input/InputOTP 未传 `variant="secondary"`（白底输入框融进白卡片）；
+  - 手写 `div.rounded-full` 圆圈替代 Avatar 组件、手写 span 徽章替代 Chip、手写 span 角标替代 Badge（官方用 `Badge.Anchor` 包目标元素 + `placement` + `size="sm"`，角标锚在图标角落而不是盖住图标）；
+  - `p-5`/`p-0` 手动覆盖 Card 内置 padding（官方 demo 直接裸用 Card.Header/Content/Footer）；
+  - 手写 `<input>` 替代 SearchField（官方自带搜索图标与清空按钮）。
+- 审计 grep 模式：`<Switch defaultSelected` / `<Switch aria-label`（裸开关）、`<Card>` 内出现 `<Table`、`<Card className="p-`、`rounded-full bg-accent/15`（手写头像/徽章）、`<input`（应优先 SearchField/Input）。
+
 ## 代码约定（踩坑记录，勿删）
 
-- **Surface/Card 内的输入类组件必须用 `variant="secondary"`**：HeroUI 的 Input / InputOTP 等默认 `primary` 变体是白底 + 浅阴影，设计给页面背景使用；放进白色 Card 会与底色融为一体。官方文档明确要求 Surface 组件内使用 `secondary` 变体（灰底、无阴影），官方 Card+Form demo 也这么做。登录页等页面背景上的输入框仍用默认 primary。
+- **HeroUI 的 `variant` 体系与 Surface 嵌套规则**：组件的 `primary` 变体设计给页面背景，`secondary` 变体给嵌套在其他 Surface 内的场景（官方 Card+Form demo 中 Input 均为 `variant="secondary"`，Input/InputOTP 同理；页面背景上的输入框仍用 primary）。反方向同理：**Table 的 primary 变体自带灰底 Surface 容器，官方 demo 从不用 Card 包裹 Table**——不要给 Table 再套 Card，标题用页面级小标题即可。本项目曾反复因忽略此规则做出分层错误（Input、InputOTP、SearchField 全部中招，包括写下该规则的同一晚用 SearchField 再次踩坑）。**规则按「组件当前渲染在什么背景上」判断——Card/Modal/Drawer/Popover 等 Surface 内的所有 field 类组件（Input / InputOTP / SearchField / TextArea…）一律 `variant="secondary"`，页面背景上的才用 primary；不要按组件名背清单，枚举必然有遗漏。**
 
 - **Tailwind 类名禁止在模板串插值里依赖边界空格**：不要写 `` className={`a${cond ? " b" : ""}`} `` 这种靠表达式字符串首/尾空格充当拼接分隔符的代码。`prettier-plugin-tailwindcss` 规整模板串时会裁剪表达式内类串的边界空格（把 `" b"` 变成 `"b"`），拼出 `ab` 这种无效类名；typecheck / lint / build 均无法发现，只有页面渲染能暴露（本项目已因此两次丢失侧边栏间距）。正确写法：把完整类名在普通字符串变量里拼好再传给 className，或使用 `clsx("a", cond && "b")`。

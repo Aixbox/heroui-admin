@@ -1,4 +1,4 @@
-import { Card } from "@heroui/react";
+import { Avatar, Card, Chip } from "@heroui/react";
 import type { LoaderFunctionArgs } from "react-router";
 import { requireUser } from "~/lib/auth";
 
@@ -30,17 +30,19 @@ export default function ProfilePage() {
       </div>
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
         <Card>
-          <Card.Content className="flex flex-col items-center gap-3 p-6 text-center">
-            <div className="grid size-16 place-items-center rounded-full bg-accent/15 text-xl font-semibold text-accent">
-              {profile.name.slice(0, 1)}
-            </div>
+          <Card.Content className="flex flex-col items-center gap-3 text-center">
+            <Avatar className="size-16">
+              <Avatar.Fallback className="bg-accent/15 text-xl font-semibold text-accent">
+                {profile.name.slice(0, 1)}
+              </Avatar.Fallback>
+            </Avatar>
             <div>
               <p className="text-lg font-semibold">{profile.name}</p>
               <p className="text-sm text-muted">{profile.email}</p>
             </div>
-            <span className="rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-medium text-accent">
-              {profile.role}
-            </span>
+            <Chip variant="primary">
+              <Chip.Label>{profile.role}</Chip.Label>
+            </Chip>
           </Card.Content>
         </Card>
         <div className="space-y-6">
