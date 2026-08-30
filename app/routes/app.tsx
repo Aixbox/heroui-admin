@@ -1,4 +1,4 @@
-import { Button, Link } from "@heroui/react";
+import { Button, Link, useTheme } from "@heroui/react";
 import { useEffect, useState } from "react";
 import {
   Outlet,
@@ -142,10 +142,29 @@ export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const [fullWidth, setFullWidth] = useState(false);
+  const { resolvedTheme, setTheme } = useTheme("system");
   useEffect(() => setUser(user), [setUser, user]);
   const handleLogout = async () => {
     await mockApi.logout();
     navigate("/login", { replace: true });
+  };
+  // 与登录页一致：切换主题用 View Transition 包裹，保留 Polygon 主题切换动画
+  const toggleTheme = (theme: "light" | "dark") => {
+    const applyTheme = () => {
+      const root = document.documentElement;
+      root.classList.remove("light", "dark");
+      root.classList.add(theme);
+      root.dataset.theme = theme;
+      setTheme(theme);
+    };
+
+    if (typeof document.startViewTransition !== "function") {
+      applyTheme();
+      return;
+    }
+
+    document.startViewTransition(applyTheme);
   };
 
   return (
@@ -182,7 +201,7 @@ export default function AppLayout() {
         className={collapsed ? "lg:pl-16" : "lg:pl-64"}
         style={{ transition: "padding-left 280ms cubic-bezier(0.4, 0, 0.2, 1)" }}
       >
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-separator bg-background/80 pr-4 pl-3 backdrop-blur-lg sm:pr-8 sm:pl-4">
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-separator bg-surface/60 pr-4 pl-3 backdrop-blur-lg sm:pr-8 sm:pl-4">
           <div className="flex min-w-0 items-center gap-3">
             <Button
               isIconOnly
@@ -196,19 +215,61 @@ export default function AppLayout() {
             </Button>
             <h1 className="truncate text-lg font-semibold">欢迎回来，{user.name.split(" ")[0]}</h1>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="hidden rounded-full bg-success/12 px-3 py-1 text-xs font-medium text-success sm:inline">
-              系统运行正常
-            </span>
-            <div className="grid size-9 place-items-center rounded-full bg-accent/15 text-sm font-semibold text-accent">
-              {user.name.slice(0, 1)}
-            </div>
-            <Button isIconOnly aria-label="退出登录" size="sm" variant="ghost" onPress={handleLogout}>
-              <AppIcon className="size-4" name="logout" />
+          <div className="flex items-center gap-1">
+            <Button
+              isIconOnly
+              aria-label={fullWidth ? "切换为定宽" : "切换为全宽"}
+              size="sm"
+              variant="ghost"
+              onPress={() => setFullWidth((value) => !value)}
+            >
+              <AppIcon className="size-4" name={fullWidth ? "widthFixed" : "widthFull"} />
             </Button>
+            <Button
+              isIconOnly
+              aria-label={resolvedTheme === "dark" ? "切换到浅色模式" : "切换到深色模式"}
+              size="sm"
+              variant="ghost"
+              onPress={() => toggleTheme(resolvedTheme === "dark" ? "light" : "dark")}
+            >
+              <AppIcon className="size-4" name={resolvedTheme === "dark" ? "sun" : "moon"} />
+            </Button>
+            <div className="group relative flex items-center">
+              <button
+                type="button"
+                className="flex items-center gap-2.5 rounded-full py-1.5 pr-3 pl-1.5 text-left transition hover:bg-surface-secondary"
+              >
+                <div className="grid size-9 shrink-0 place-items-center rounded-full bg-accent/15 text-sm font-semibold text-accent">
+                  {user.name.slice(0, 1)}
+                </div>
+                <span className="hidden text-sm font-medium sm:inline">{user.name}</span>
+              </button>
+              {/* 悬停/聚焦用户区域弹出的信息卡片；卡片是 group 子元素，指针移入卡片不会中断悬停，pt-2 作为过渡桥 */}
+              <div className="pointer-events-none invisible absolute top-full right-0 z-20 translate-y-1 pt-2 opacity-0 transition-all duration-150 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                <div className="w-64 rounded-xl border border-separator bg-surface p-4 shadow-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="grid size-10 shrink-0 place-items-center rounded-full bg-accent/15 text-sm font-semibold text-accent">
+                      {user.name.slice(0, 1)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold">{user.name}</p>
+                      <p className="truncate text-xs text-muted">{user.email}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex gap-2">
+                    <Button className="flex-1" size="sm" variant="outline" onPress={() => navigate("/app/settings")}>
+                      个人设置
+                    </Button>
+                    <Button className="flex-1" size="sm" variant="danger" onPress={handleLogout}>
+                      退出登录
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </header>
-        <main className="mx-auto max-w-7xl p-4 sm:p-8">
+        <main className={fullWidth ? "p-4 sm:p-8" : "mx-auto max-w-7xl p-4 sm:p-8"}>
           <Outlet />
         </main>
       </div>

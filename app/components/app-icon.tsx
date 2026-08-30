@@ -2,11 +2,15 @@ import {
   ChartNoAxesCombined,
   LayoutDashboard,
   LogOut,
+  Maximize2,
   Menu,
+  Minimize2,
+  Moon,
   PanelLeftClose,
   PanelLeftOpen,
   Settings,
   SlidersHorizontal,
+  Sun,
   Users,
   type LucideProps,
 } from "lucide-react";
@@ -22,6 +26,10 @@ const icons = {
   panelOpen: PanelLeftOpen,
   logout: LogOut,
   analytics: ChartNoAxesCombined,
+  widthFull: Maximize2,
+  widthFixed: Minimize2,
+  sun: Sun,
+  moon: Moon,
 } satisfies Record<string, ComponentType<LucideProps>>;
 
 export function AppIcon({ name, ...props }: LucideProps & { name: keyof typeof icons }) {
