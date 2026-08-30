@@ -36,6 +36,17 @@
 }
 
 @layer base {
+  /* Recharts accessibilityLayer 使图表根 SVG（.recharts-surface）可聚焦，程序化聚焦会触发
+     :focus-visible 黑色外框；连同容器与所有内部元素一并去除（图表内无输入控件，无副作用） */
+  .recharts-wrapper :focus,
+  .recharts-wrapper :focus-visible,
+  .recharts-wrapper:focus,
+  .recharts-wrapper:focus-visible,
+  .recharts-surface:focus,
+  .recharts-surface:focus-visible {
+    outline: none;
+  }
+
   ::view-transition-group(root) {
     animation-duration: 0.7s;
     animation-timing-function: var(--expo-out);

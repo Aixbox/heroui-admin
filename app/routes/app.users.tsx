@@ -1,4 +1,4 @@
-import { Card, Chip, Table } from "@heroui/react";
+import { Chip, Table } from "@heroui/react";
 import { requireUser } from "~/lib/auth";
 import type { LoaderFunctionArgs } from "react-router";
 
@@ -18,43 +18,39 @@ export default function UsersPage() {
         <h2 className="text-2xl font-semibold tracking-tight">用户管理</h2>
         <p className="mt-1 text-muted">管理工作区成员及其访问权限。</p>
       </div>
-      <Card>
-        <Card.Header>
-          <Card.Title>团队成员</Card.Title>
-          <Card.Description>共 {users.length} 位成员</Card.Description>
-        </Card.Header>
-        <Card.Content>
-          <Table>
-            <Table.ScrollContainer>
-              <Table.Content aria-label="团队成员">
-                <Table.Header>
-                  <Table.Column isRowHeader>成员</Table.Column>
-                  <Table.Column>角色</Table.Column>
-                  <Table.Column>状态</Table.Column>
-                </Table.Header>
-                <Table.Body>
-                  {users.map((user) => (
-                    <Table.Row key={user.email}>
-                      <Table.Cell>
-                        <div>
-                          <p className="font-medium">{user.name}</p>
-                          <p className="text-xs text-muted">{user.email}</p>
-                        </div>
-                      </Table.Cell>
-                      <Table.Cell>{user.role}</Table.Cell>
-                      <Table.Cell>
-                        <Chip color={user.status === "活跃" ? "success" : "warning"} variant="primary">
-                          <Chip.Label>{user.status}</Chip.Label>
-                        </Chip>
-                      </Table.Cell>
-                    </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table.Content>
-            </Table.ScrollContainer>
-          </Table>
-        </Card.Content>
-      </Card>
+      <div className="flex items-baseline justify-between">
+        <h3 className="text-lg font-semibold tracking-tight">团队成员</h3>
+        <p className="text-sm text-muted">共 {users.length} 位成员</p>
+      </div>
+      <Table>
+        <Table.ScrollContainer>
+          <Table.Content aria-label="团队成员">
+            <Table.Header>
+              <Table.Column isRowHeader>成员</Table.Column>
+              <Table.Column>角色</Table.Column>
+              <Table.Column>状态</Table.Column>
+            </Table.Header>
+            <Table.Body>
+              {users.map((user) => (
+                <Table.Row key={user.email}>
+                  <Table.Cell>
+                    <div>
+                      <p className="font-medium">{user.name}</p>
+                      <p className="text-xs text-muted">{user.email}</p>
+                    </div>
+                  </Table.Cell>
+                  <Table.Cell>{user.role}</Table.Cell>
+                  <Table.Cell>
+                    <Chip color={user.status === "活跃" ? "success" : "warning"} variant="primary">
+                      <Chip.Label>{user.status}</Chip.Label>
+                    </Chip>
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table.Content>
+        </Table.ScrollContainer>
+      </Table>
     </div>
   );
 }
