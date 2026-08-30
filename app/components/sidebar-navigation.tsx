@@ -1,4 +1,4 @@
-import { Disclosure } from "@heroui/react";
+import { Disclosure, Popover } from "@heroui/react";
 import { listboxItemVariants } from "@heroui/styles/components/list-box-item";
 import type { ComponentProps } from "react";
 import { NavLink } from "react-router";
@@ -35,6 +35,7 @@ export type SidebarNavigationItem = {
 type SidebarNavigationProps = {
   items: SidebarNavigationItem[];
   pathname: string;
+  collapsed?: boolean;
 };
 
 type NavigationItemsProps = SidebarNavigationProps & {
@@ -47,6 +48,17 @@ function isItemActive(item: SidebarNavigationItem, pathname: string): boolean {
   if (item.children?.some((child) => isItemActive(child, pathname))) return true;
   if (!item.href) return false;
   return item.end ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
+}
+
+function NavIcon({ item }: { item: SidebarNavigationItem }) {
+  return item.icon ? (
+    <AppIcon className="size-4 shrink-0 text-muted" name={item.icon} />
+  ) : (
+    // 无图标项在折叠态用首字符占位
+    <span aria-hidden className="grid size-4 shrink-0 place-items-center text-[13px] leading-none font-semibold">
+      {item.label.slice(0, 1)}
+    </span>
+  );
 }
 
 function NavigationItems({
@@ -75,6 +87,10 @@ function NavigationItems({
     };
 
     if (item.children?.length) {
+      // 类名整体拼好再传，不做模板串内插值：prettier-plugin-tailwindcss 会裁剪模板串表达式内类串的
+      // 边界空格（曾两次把 " pb-2" 变成 "pb-2"，拼出无效的 pt-1pb-2，导致菜单间距全部消失）。
+      // 一级展开组额外 8px 底距（+外层 gap 4px = 12px，大于父子间 4px）；深层级不叠加，避免间距随深度累积。
+      const contentClassName = depth === 0 ? "flex flex-col gap-1 pt-1 pb-2" : "flex flex-col gap-1 pt-1";
       return (
         <Disclosure key={item.label} defaultExpanded={isActive}>
           <Disclosure.Heading className="w-full">
@@ -88,8 +104,7 @@ function NavigationItems({
             </Disclosure.Trigger>
           </Disclosure.Heading>
           <Disclosure.Content>
-            {/* 分组底距只加在一级展开组（8px + 外层 gap 4px = 12px，大于父子间 4px）；深层级不叠加，避免间距随展开深度累积 */}
-            <div className={`flex flex-col gap-1 pt-1${depth === 0 ? "pb-2" : ""}`}>
+            <div className={contentClassName}>
               <NavigationItems
                 depth={depth + 1}
                 items={item.children}
@@ -124,7 +139,56 @@ function NavigationItems({
   });
 }
 
-export function SidebarNavigation({ items, pathname }: SidebarNavigationProps) {
+const collapsedItemStyles = ({ isActive }: { isActive: boolean }) =>
+  `flex size-10 shrink-0 items-center justify-center rounded-lg text-sm transition ${
+    isActive ? "bg-default font-medium text-default-foreground" : "text-foreground hover:bg-surface-secondary"
+  }`;
+
+/* 折叠态：顶层只显示图标；叶子项直链，分组点击后经 Popover 向右弹出完整子树 */
+function CollapsedNavigation({ items, pathname }: SidebarNavigationProps) {
+  return (
+    <div className="flex flex-col items-center gap-1">
+      {items.map((item) => {
+        if (item.children?.length) {
+          return (
+            <Popover key={item.label}>
+              <Popover.Trigger
+                aria-label={item.label}
+                className={collapsedItemStyles({ isActive: isItemActive(item, pathname) })}
+                title={item.label}
+              >
+                <NavIcon item={item} />
+              </Popover.Trigger>
+              <Popover.Content placement="right" offset={8}>
+                <div className="flex max-h-[70vh] w-60 flex-col gap-1 overflow-y-auto p-2">
+                  <NavigationItems items={item.children} pathname={pathname} />
+                </div>
+              </Popover.Content>
+            </Popover>
+          );
+        }
+
+        if (!item.href) return null;
+
+        return (
+          <NavLink
+            key={item.href}
+            aria-label={item.label}
+            className={({ isActive }) => collapsedItemStyles({ isActive })}
+            end={item.end}
+            title={item.label}
+            to={item.href}
+          >
+            <NavIcon item={item} />
+          </NavLink>
+        );
+      })}
+    </div>
+  );
+}
+
+export function SidebarNavigation({ items, pathname, collapsed = false }: SidebarNavigationProps) {
+  if (collapsed) return <CollapsedNavigation items={items} pathname={pathname} />;
   return (
     <div key={pathname} className="flex flex-col gap-1">
       <NavigationItems items={items} pathname={pathname} />

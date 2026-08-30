@@ -3,6 +3,8 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
   Settings,
   SlidersHorizontal,
   Users,
@@ -16,6 +18,8 @@ const icons = {
   settings: Settings,
   configuration: SlidersHorizontal,
   menu: Menu,
+  panelClose: PanelLeftClose,
+  panelOpen: PanelLeftOpen,
   logout: LogOut,
   analytics: ChartNoAxesCombined,
 } satisfies Record<string, ComponentType<LucideProps>>;
