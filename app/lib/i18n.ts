@@ -57,6 +57,11 @@ const en: Record<string, string> = {
   个人中心: "Profile Center",
   返回概览: "Back to Overview",
   返回上一页: "Go Back",
+  搜索姓名或邮箱: "Search name or email",
+  暂无匹配用户: "No matching users",
+  "共 {total} 条": "{total} items in total",
+  上一页: "Previous",
+  下一页: "Next",
 };
 
 export type Translator = (text: string) => string;

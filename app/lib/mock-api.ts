@@ -28,6 +28,29 @@ export interface DashboardStats {
   customers: number;
   conversion: string;
 }
+
+/** 用户列表行（管理页表格用，与登录态 User 是不同契约） */
+export interface UserListItem {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+}
+
+/** 通用分页查询参数与结果（所有列表类接口统一契约） */
+export interface PageQuery {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+}
+
+export interface PageResult<T> {
+  list: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
 export interface MockApiError {
   message: string;
   fieldErrors?: Record<string, string>;
@@ -63,4 +86,12 @@ export const mockApi = {
     mockRequest<{ user: User }>("/mock-api/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
   logout: () => mockRequest<{ ok: true }>("/mock-api/auth/logout", { method: "POST" }),
   stats: (requestInit?: RequestInit) => mockRequest<DashboardStats>("/mock-api/dashboard/stats", requestInit),
+  users: (params: PageQuery = {}, requestInit?: RequestInit) => {
+    const search = new URLSearchParams({
+      page: String(params.page ?? 1),
+      pageSize: String(params.pageSize ?? 10),
+    });
+    if (params.keyword) search.set("keyword", params.keyword);
+    return mockRequest<PageResult<UserListItem>>(`/mock-api/users?${search.toString()}`, requestInit);
+  },
 };

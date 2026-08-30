@@ -81,6 +81,24 @@ const roleMenus = {
   editor: menus.filter((item) => item.key !== "system"),
 };
 
+// 用户列表数据（分页 + 关键字过滤演示）
+const mockUsers = [
+  { id: "usr_001", name: "Ada Lovelace", email: "admin@acme.com", role: "管理员", status: "活跃" },
+  { id: "usr_002", name: "Grace Hopper", email: "grace@acme.com", role: "编辑者", status: "活跃" },
+  { id: "usr_003", name: "Alan Turing", email: "alan@acme.com", role: "编辑者", status: "待审核" },
+  { id: "usr_004", name: "Marie Curie", email: "marie@acme.com", role: "编辑者", status: "活跃" },
+  { id: "usr_005", name: "Isaac Newton", email: "isaac@acme.com", role: "查看者", status: "停用" },
+  { id: "usr_006", name: "Katherine Johnson", email: "katherine@acme.com", role: "编辑者", status: "活跃" },
+  { id: "usr_007", name: "Nikola Tesla", email: "nikola@acme.com", role: "查看者", status: "待审核" },
+  { id: "usr_008", name: "Rosalind Franklin", email: "rosalind@acme.com", role: "编辑者", status: "活跃" },
+  { id: "usr_009", name: "George Boole", email: "george@acme.com", role: "查看者", status: "停用" },
+  { id: "usr_010", name: "Ada Lovelace Jr", email: "ada2@acme.com", role: "编辑者", status: "活跃" },
+  { id: "usr_011", name: "Charles Babbage", email: "charles@acme.com", role: "查看者", status: "活跃" },
+  { id: "usr_012", name: "Hedy Lamarr", email: "hedy@acme.com", role: "编辑者", status: "待审核" },
+  { id: "usr_013", name: "John von Neumann", email: "von@acme.com", role: "管理员", status: "活跃" },
+  { id: "usr_014", name: "Margaret Hamilton", email: "margaret@acme.com", role: "编辑者", status: "活跃" },
+];
+
 function send(res, status, data, extraHeaders = {}) {
   res.writeHead(status, { "Content-Type": "application/json", "X-Mock-Api": "true", ...extraHeaders });
   res.end(JSON.stringify(data));
@@ -144,6 +162,23 @@ const server = createServer(async (req, res) => {
   if (req.method === "GET" && url.pathname === "/mock-api/dashboard/stats") {
     if (!currentUser) return send(res, 401, { message: "未登录" });
     return send(res, 200, { revenue: "¥128,430", orders: 1248, customers: 8420, conversion: "12.8%" });
+  }
+  if (req.method === "GET" && url.pathname === "/mock-api/users") {
+    if (!currentUser) return send(res, 401, { message: "未登录" });
+    const searchParams = url.searchParams;
+    const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
+    const pageSize = Math.min(50, Math.max(1, Number(searchParams.get("pageSize") ?? 10) || 10));
+    const keyword = (searchParams.get("keyword") ?? "").trim().toLowerCase();
+    const filtered = mockUsers.filter(
+      (user) => !keyword || user.name.toLowerCase().includes(keyword) || user.email.toLowerCase().includes(keyword),
+    );
+    const start = (page - 1) * pageSize;
+    return send(res, 200, {
+      list: filtered.slice(start, start + pageSize),
+      total: filtered.length,
+      page,
+      pageSize,
+    });
   }
   return send(res, 404, { message: "Mock API route not found" });
 });
