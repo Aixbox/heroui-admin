@@ -62,6 +62,9 @@ const en: Record<string, string> = {
   "共 {total} 条": "{total} items in total",
   上一页: "Previous",
   下一页: "Next",
+  进入全屏: "Enter fullscreen",
+  退出全屏: "Exit fullscreen",
+  关闭标签页: "Close tab",
 };
 
 export type Translator = (text: string) => string;

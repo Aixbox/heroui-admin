@@ -3,8 +3,10 @@ import {
   ChartNoAxesCombined,
   LayoutDashboard,
   LogOut,
+  Maximize,
   Maximize2,
   Menu,
+  Minimize,
   Minimize2,
   Moon,
   PanelLeftClose,
@@ -15,6 +17,7 @@ import {
   Sun,
   TriangleAlert,
   Users,
+  X,
   type LucideProps,
 } from "lucide-react";
 import type { ComponentType } from "react";
@@ -36,6 +39,9 @@ const icons = {
   search: Search,
   bell: Bell,
   warning: TriangleAlert,
+  fullscreen: Maximize,
+  fullscreenExit: Minimize,
+  close: X,
 } satisfies Record<string, ComponentType<LucideProps>>;
 
 export function AppIcon({ name, ...props }: LucideProps & { name: keyof typeof icons }) {

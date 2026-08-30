@@ -8,25 +8,15 @@ import {
   type LoaderFunctionArgs,
   type MetaFunction,
 } from "react-router";
-import { mockApi, type MenuNode } from "~/lib/mock-api";
+import { mockApi } from "~/lib/mock-api";
+import { findMenuTrail, toNavItems, type TabItem } from "~/lib/menu";
 import { requireUser } from "~/lib/auth";
 import { useAuthStore } from "~/stores/auth";
 import { AppIcon } from "~/components/app-icon";
 import { CommandPalette } from "~/components/command-palette";
-import { SidebarNavigation, type SidebarNavigationItem } from "~/components/sidebar-navigation";
+import { SidebarNavigation } from "~/components/sidebar-navigation";
 import { useT } from "~/lib/i18n";
 import { useUiStore } from "~/stores/ui";
-
-// 后端下发的菜单树 → 侧边栏数据；label 为中文原文（i18n 回退），icon 需与 AppIcon 图标表对齐
-function toNavItems(nodes: MenuNode[]): SidebarNavigationItem[] {
-  return nodes.map((node) => ({
-    label: node.label,
-    icon: node.icon as SidebarNavigationItem["icon"],
-    href: node.href,
-    end: node.end,
-    children: node.children ? toNavItems(node.children) : undefined,
-  }));
-}
 
 export const meta: MetaFunction = () => [{ title: "Acme Admin" }];
 
@@ -53,6 +43,8 @@ export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const notifState = useOverlayState();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [tabs, setTabs] = useState<TabItem[]>(() => [{ path: "/app", label: "概览" }]);
   const [notifications, setNotifications] = useState(initialNotifications);
   const { resolvedTheme, setTheme } = useTheme("system");
   const locale = useUiStore((state) => state.locale);
@@ -81,6 +73,19 @@ export default function AppLayout() {
     document.startViewTransition(applyTheme);
   };
 
+  useEffect(() => {
+    const onFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
+  }, []);
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      void document.exitFullscreen();
+    } else {
+      void document.documentElement.requestFullscreen();
+    }
+  };
+
   const unreadCount = notifications.filter((item) => item.unread).length;
   const markAllRead = () => setNotifications((list) => list.map((item) => ({ ...item, unread: false })));
 
@@ -99,25 +104,30 @@ export default function AppLayout() {
     };
   }, []);
 
-  // 面包屑：在导航树中查找当前路径的层级链，找不到时回退到「概览」
-  const trail = useMemo(() => {
-    const search = (items: SidebarNavigationItem[], parents: string[]): string[] | null => {
-      for (const item of items) {
-        const isCurrent = Boolean(
-          item.href &&
-          !item.children?.length &&
-          (location.pathname === item.href || location.pathname.startsWith(`${item.href}/`)),
-        );
-        if (isCurrent) return [...parents, item.label];
-        if (item.children?.length) {
-          const found = search(item.children, [...parents, item.label]);
-          if (found) return found;
-        }
+  // 面包屑：由菜单树推导当前路径链，未命中回退「概览」
+  const trail = useMemo(
+    () => findMenuTrail(navigationItems, location.pathname) ?? ["概览"],
+    [location.pathname, navigationItems],
+  );
+
+  // 多标签页：进入新路由时记录页签；关闭当前页签时回退到相邻页签（概览页签固定）
+  useEffect(() => {
+    const label = trail[trail.length - 1] ?? "概览";
+    setTabs((prev) =>
+      prev.some((tab) => tab.path === location.pathname) ? prev : [...prev, { path: location.pathname, label }],
+    );
+  }, [location.pathname, trail]);
+  const closeTab = (path: string) => {
+    setTabs((prevTabs) => {
+      const index = prevTabs.findIndex((tab) => tab.path === path);
+      const next = prevTabs.filter((tab) => tab.path !== path);
+      if (path === location.pathname) {
+        const fallback = next[Math.max(0, index - 1)] ?? next[0];
+        if (fallback) navigate(fallback.path);
       }
-      return null;
-    };
-    return search(navigationItems, []) ?? ["概览"];
-  }, [location.pathname, navigationItems]);
+      return next;
+    });
+  };
 
   // 恢复本地保存的界面偏好；SSR 首帧保持默认值，挂载后再同步，避免水合不一致
   useEffect(() => {
@@ -214,6 +224,15 @@ export default function AppLayout() {
             </Breadcrumbs>
           </div>
           <div className="flex items-center gap-1">
+            <Button
+              isIconOnly
+              aria-label={isFullscreen ? t("退出全屏") : t("进入全屏")}
+              size="sm"
+              variant="ghost"
+              onPress={toggleFullscreen}
+            >
+              <AppIcon className="size-4" name={isFullscreen ? "fullscreenExit" : "fullscreen"} />
+            </Button>
             <Button isIconOnly aria-label={t("搜索")} size="sm" variant="ghost" onPress={() => setSearchOpen(true)}>
               <AppIcon className="size-4" name="search" />
             </Button>
@@ -334,6 +353,38 @@ export default function AppLayout() {
             </div>
           </div>
         </header>
+        {/* 多标签页栏：记录访问过的页面，点击切换、悬停出现关闭按钮；概览页签固定 */}
+        <div className="flex items-center gap-1.5 overflow-x-auto border-b border-separator bg-background/60 px-3 py-1.5 sm:px-4">
+          {tabs.map((tab) => {
+            const isActive = tab.path === location.pathname;
+            return (
+              <div
+                key={tab.path}
+                className={`group flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm transition ${
+                  isActive
+                    ? "bg-accent/12 font-medium text-accent"
+                    : "text-muted hover:bg-surface-secondary hover:text-foreground"
+                }`}
+              >
+                <button type="button" className="cursor-pointer" onClick={() => navigate(tab.path)}>
+                  {t(tab.label)}
+                </button>
+                {tab.path !== "/app" && (
+                  <button
+                    type="button"
+                    aria-label={`${t("关闭标签页")} ${t(tab.label)}`}
+                    className={`cursor-pointer rounded p-0.5 transition hover:bg-default ${
+                      isActive ? "opacity-70" : "opacity-0 group-hover:opacity-70"
+                    }`}
+                    onClick={() => closeTab(tab.path)}
+                  >
+                    <AppIcon className="size-3" name="close" />
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
         <main className={fullWidth ? "p-4 sm:p-8" : "mx-auto max-w-7xl p-4 sm:p-8"}>
           <Outlet />
         </main>
