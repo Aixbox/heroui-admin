@@ -20,114 +20,31 @@ import { useUiStore } from "~/stores/ui";
 const navigationItems: SidebarNavigationItem[] = [
   { href: "/app", label: "概览", icon: "dashboard", end: true },
   {
-    label: "用户与权限",
+    label: "示例",
+    icon: "configuration",
+    children: [
+      { href: "/app/examples/form", label: "表单" },
+      { href: "/app/examples/table", label: "表格" },
+      { href: "/app/examples/captcha", label: "验证码" },
+      { href: "/app/examples/modal", label: "弹窗" },
+      { href: "/app/examples/drawer", label: "抽屉" },
+    ],
+  },
+  {
+    label: "异常页",
+    icon: "warning",
+    children: [
+      { href: "/app/exceptions/404", label: "404" },
+      { href: "/app/exceptions/403", label: "403" },
+      { href: "/app/exceptions/500", label: "500" },
+    ],
+  },
+  {
+    label: "个人页",
     icon: "users",
-    children: [{ href: "/app/users", label: "用户管理" }],
-  },
-  {
-    label: "系统管理",
-    icon: "settings",
     children: [
-      {
-        label: "配置中心",
-        children: [
-          {
-            label: "系统设置",
-            children: [{ href: "/app/settings", label: "通知设置" }],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    label: "分析中心",
-    icon: "analytics",
-    children: [
-      {
-        label: "数据分析",
-        children: [
-          {
-            label: "指标配置",
-            icon: "configuration",
-            children: [{ href: "/app/analytics", label: "趋势分析" }],
-          },
-        ],
-      },
-      {
-        label: "报表中心",
-        icon: "configuration",
-        children: [{ href: "/app/reports", label: "销售报表" }],
-      },
-    ],
-  },
-  {
-    label: "系统工具",
-    icon: "settings",
-    children: [
-      {
-        label: "任务中心",
-        icon: "analytics",
-        children: [
-          {
-            label: "执行记录",
-            icon: "configuration",
-            children: [{ href: "/app/reports", label: "运行详情", icon: "users" }],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    label: "测试链 A · 有无无有有无有",
-    icon: "settings",
-    children: [
-      {
-        label: "第 2 级 · 无",
-        children: [
-          {
-            label: "第 3 级 · 无",
-            children: [
-              {
-                label: "第 4 级 · 有",
-                icon: "analytics",
-                children: [
-                  {
-                    label: "第 5 级 · 有",
-                    icon: "configuration",
-                    children: [
-                      {
-                        label: "第 6 级 · 无",
-                        children: [{ href: "/app/pattern-a", label: "第 7 级 · 有", icon: "users" }],
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    label: "测试链 B · 无有有无无",
-    children: [
-      {
-        label: "第 2 级 · 有",
-        icon: "users",
-        children: [
-          {
-            label: "第 3 级 · 有",
-            icon: "analytics",
-            children: [
-              {
-                label: "第 4 级 · 无",
-                children: [{ href: "/app/pattern-b", label: "第 5 级 · 无" }],
-              },
-            ],
-          },
-        ],
-      },
+      { href: "/app/settings", label: "个人设置" },
+      { href: "/app/profile", label: "个人中心" },
     ],
   },
 ];

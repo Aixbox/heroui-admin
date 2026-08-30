@@ -45,6 +45,18 @@ const en: Record<string, string> = {
   通知: "Notifications",
   暂无通知: "No notifications yet",
   全部已读: "Mark all as read",
+  // 示例与异常页菜单
+  示例: "Examples",
+  表单: "Forms",
+  表格: "Tables",
+  验证码: "Captcha",
+  弹窗: "Modals",
+  抽屉: "Drawers",
+  异常页: "Error Pages",
+  个人页: "Personal",
+  个人中心: "Profile Center",
+  返回概览: "Back to Overview",
+  返回上一页: "Go Back",
 };
 
 export type Translator = (text: string) => string;

@@ -13,6 +13,7 @@ import {
   Settings,
   SlidersHorizontal,
   Sun,
+  TriangleAlert,
   Users,
   type LucideProps,
 } from "lucide-react";
@@ -34,6 +35,7 @@ const icons = {
   moon: Moon,
   search: Search,
   bell: Bell,
+  warning: TriangleAlert,
 } satisfies Record<string, ComponentType<LucideProps>>;
 
 export function AppIcon({ name, ...props }: LucideProps & { name: keyof typeof icons }) {
