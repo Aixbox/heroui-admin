@@ -4,11 +4,9 @@ node_modules
 /build
 .env
 .react-router/
-.wrangler/
 yarn.lock
 package-lock.json
 bun.lockb
-worker-configuration.d.ts
 mock-api/.sessions.json
 api/.sessions.json
 # heroui-agents-md

@@ -28,7 +28,6 @@ export default defineConfig([
     "**/build",
     "**/.react-router",
     "**/.heroui-docs",
-    "**/worker-configuration.d.ts",
     "**/*.config.js",
     "**/*.config.cjs",
     "**/*.config.mjs",
@@ -95,12 +94,6 @@ export default defineConfig([
       "react/prop-types": "off",
       "react/jsx-uses-react": "off",
       "react/react-in-jsx-scope": "off",
-    },
-  },
-  {
-    files: ["workers/**/*.ts"],
-    rules: {
-      "import/no-unresolved": "off",
     },
   },
 ]);
