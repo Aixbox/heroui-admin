@@ -40,7 +40,7 @@ export default function ProfilePage() {
               <p className="text-lg font-semibold">{profile.name}</p>
               <p className="text-sm text-muted">{profile.email}</p>
             </div>
-            <Chip variant="primary">
+            <Chip variant="soft">
               <Chip.Label>{profile.role}</Chip.Label>
             </Chip>
           </Card.Content>

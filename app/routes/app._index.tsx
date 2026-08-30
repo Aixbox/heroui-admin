@@ -74,7 +74,7 @@ export default function DashboardPage() {
       <div>
         <div className="flex flex-wrap items-center gap-3">
           <h2 className="text-2xl font-semibold tracking-tight">业务概览</h2>
-          <Chip color="warning" variant="primary">
+          <Chip color="warning" variant="soft">
             <Chip.Label>Mock 数据</Chip.Label>
           </Chip>
         </div>
@@ -269,7 +269,7 @@ export default function DashboardPage() {
                   <Table.Cell>{order.product}</Table.Cell>
                   <Table.Cell>{order.amount}</Table.Cell>
                   <Table.Cell>
-                    <Chip color={statusColor[order.status as keyof typeof statusColor]} variant="primary">
+                    <Chip color={statusColor[order.status as keyof typeof statusColor]} variant="soft">
                       <Chip.Label>{order.status}</Chip.Label>
                     </Chip>
                   </Table.Cell>

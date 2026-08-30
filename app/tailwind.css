@@ -89,3 +89,40 @@
     }
   }
 }
+
+/* Chip soft 变体增浓：官方 soft 底色 tint 仅 15%/12% 且文字混灰，对状态徽章过淡。
+   此处将底色 tint 提至 30%/24%、文字用纯主题色；unlayered 规则优先于 @layer components 的库样式 */
+.chip--soft.chip--accent {
+  --chip-bg: color-mix(in oklab, var(--accent) 30%, transparent);
+  --chip-fg: var(--accent);
+}
+.chip--soft.chip--success {
+  --chip-bg: color-mix(in oklab, var(--success) 30%, transparent);
+  --chip-fg: var(--success);
+}
+.chip--soft.chip--warning {
+  --chip-bg: color-mix(in oklab, var(--warning) 30%, transparent);
+  --chip-fg: var(--warning);
+}
+.chip--soft.chip--danger {
+  --chip-bg: color-mix(in oklab, var(--danger) 30%, transparent);
+  --chip-fg: var(--danger);
+}
+.chip--soft.chip--default {
+  --chip-bg: color-mix(in oklab, var(--default) 30%, transparent);
+}
+.dark .chip--soft.chip--accent {
+  --chip-bg: color-mix(in oklab, var(--accent) 24%, transparent);
+}
+.dark .chip--soft.chip--success {
+  --chip-bg: color-mix(in oklab, var(--success) 24%, transparent);
+}
+.dark .chip--soft.chip--warning {
+  --chip-bg: color-mix(in oklab, var(--warning) 24%, transparent);
+}
+.dark .chip--soft.chip--danger {
+  --chip-bg: color-mix(in oklab, var(--danger) 24%, transparent);
+}
+.dark .chip--soft.chip--default {
+  --chip-bg: color-mix(in oklab, var(--default) 24%, transparent);
+}

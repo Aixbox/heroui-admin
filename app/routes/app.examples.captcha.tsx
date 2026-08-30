@@ -65,12 +65,12 @@ export default function CaptchaExamplePage() {
               重置
             </Button>
             {result === "success" && (
-              <Chip color="success" variant="primary">
+              <Chip color="success" variant="soft">
                 <Chip.Label>验证成功</Chip.Label>
               </Chip>
             )}
             {result === "error" && (
-              <Chip color="danger" variant="primary">
+              <Chip color="danger" variant="soft">
                 <Chip.Label>验证失败</Chip.Label>
               </Chip>
             )}

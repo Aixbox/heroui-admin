@@ -23,7 +23,8 @@
   - Card 内 Input/InputOTP 未传 `variant="secondary"`（白底输入框融进白卡片）；
   - 手写 `div.rounded-full` 圆圈替代 Avatar 组件、手写 span 徽章替代 Chip、手写 span 角标替代 Badge（官方用 `Badge.Anchor` 包目标元素 + `placement` + `size="sm"`，角标锚在图标角落而不是盖住图标）；
   - `p-5`/`p-0` 手动覆盖 Card 内置 padding（官方 demo 直接裸用 Card.Header/Content/Footer）；
-  - 手写 `<input>` 替代 SearchField（官方自带搜索图标与清空按钮）。
+  - 手写 `<input>` 替代 SearchField（官方自带搜索图标与清空按钮）；
+  - Chip 状态徽章沿用实心 `primary` 变体（状态徽章应用 `soft` 柔和变体：浅色底 + 同色系文字，与页面更融合）。
 - 审计 grep 模式：`<Switch defaultSelected` / `<Switch aria-label`（裸开关）、`<Card>` 内出现 `<Table`、`<Card className="p-`、`rounded-full bg-accent/15`（手写头像/徽章）、`<input`（应优先 SearchField/Input）。
 
 ## 代码约定（踩坑记录，勿删）

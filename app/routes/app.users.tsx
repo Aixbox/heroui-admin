@@ -77,7 +77,7 @@ export default function UsersPage() {
                     </Table.Cell>
                     <Table.Cell>{user.role}</Table.Cell>
                     <Table.Cell>
-                      <Chip color={user.status === "活跃" ? "success" : "warning"} variant="primary">
+                      <Chip color={user.status === "活跃" ? "success" : "warning"} variant="soft">
                         <Chip.Label>{user.status}</Chip.Label>
                       </Chip>
                     </Table.Cell>
