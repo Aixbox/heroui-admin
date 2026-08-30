@@ -10,8 +10,16 @@ export async function requireUser(request: Request): Promise<User> {
   }
 }
 
-export async function requireRole(request: Request, role: User["role"]): Promise<User> {
+/** 权限码守卫：无权限时重定向回概览（按钮级可见性用 Access 组件在页面内控制） */
+export async function requirePermi(request: Request, permission: string): Promise<User> {
   const user = await requireUser(request);
-  if (user.role !== role) throw new Response("无权访问此页面", { status: 403 });
+  const allowed = user.permissions.includes("*") || user.permissions.includes(permission);
+  if (!allowed) throw redirect("/app");
+  return user;
+}
+
+export async function requireRole(request: Request, role: User["roles"][number]): Promise<User> {
+  const user = await requireUser(request);
+  if (!user.roles.includes(role)) throw redirect("/app");
   return user;
 }

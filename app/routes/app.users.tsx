@@ -1,9 +1,10 @@
-import { Chip, Table } from "@heroui/react";
-import { requireUser } from "~/lib/auth";
+import { Button, Chip, Table } from "@heroui/react";
 import type { LoaderFunctionArgs } from "react-router";
+import { Access } from "~/components/access";
+import { requirePermi } from "~/lib/auth";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  await requireUser(request);
+  await requirePermi(request, "app:user:list");
   return null;
 }
 const users = [
@@ -20,7 +21,11 @@ export default function UsersPage() {
       </div>
       <div className="flex items-baseline justify-between">
         <h3 className="text-lg font-semibold tracking-tight">团队成员</h3>
-        <p className="text-sm text-muted">共 {users.length} 位成员</p>
+        <Access permission="app:user:add">
+          <Button size="sm" variant="primary">
+            新增用户
+          </Button>
+        </Access>
       </div>
       <Table>
         <Table.ScrollContainer>
@@ -29,6 +34,7 @@ export default function UsersPage() {
               <Table.Column isRowHeader>成员</Table.Column>
               <Table.Column>角色</Table.Column>
               <Table.Column>状态</Table.Column>
+              <Table.Column>操作</Table.Column>
             </Table.Header>
             <Table.Body>
               {users.map((user) => (
@@ -44,6 +50,20 @@ export default function UsersPage() {
                     <Chip color={user.status === "活跃" ? "success" : "warning"} variant="primary">
                       <Chip.Label>{user.status}</Chip.Label>
                     </Chip>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <div className="flex gap-2">
+                      <Access permission="app:user:edit">
+                        <Button size="sm" variant="ghost">
+                          编辑
+                        </Button>
+                      </Access>
+                      <Access permission="app:user:remove">
+                        <Button size="sm" variant="ghost" className="text-danger">
+                          删除
+                        </Button>
+                      </Access>
+                    </div>
                   </Table.Cell>
                 </Table.Row>
               ))}

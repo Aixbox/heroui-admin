@@ -8,7 +8,7 @@ import {
   type LoaderFunctionArgs,
   type MetaFunction,
 } from "react-router";
-import { mockApi } from "~/lib/mock-api";
+import { mockApi, type MenuNode } from "~/lib/mock-api";
 import { requireUser } from "~/lib/auth";
 import { useAuthStore } from "~/stores/auth";
 import { AppIcon } from "~/components/app-icon";
@@ -17,37 +17,16 @@ import { SidebarNavigation, type SidebarNavigationItem } from "~/components/side
 import { useT } from "~/lib/i18n";
 import { useUiStore } from "~/stores/ui";
 
-const navigationItems: SidebarNavigationItem[] = [
-  { href: "/app", label: "概览", icon: "dashboard", end: true },
-  {
-    label: "示例",
-    icon: "configuration",
-    children: [
-      { href: "/app/examples/form", label: "表单" },
-      { href: "/app/examples/table", label: "表格" },
-      { href: "/app/examples/captcha", label: "验证码" },
-      { href: "/app/examples/modal", label: "弹窗" },
-      { href: "/app/examples/drawer", label: "抽屉" },
-    ],
-  },
-  {
-    label: "异常页",
-    icon: "warning",
-    children: [
-      { href: "/app/exceptions/404", label: "404" },
-      { href: "/app/exceptions/403", label: "403" },
-      { href: "/app/exceptions/500", label: "500" },
-    ],
-  },
-  {
-    label: "个人页",
-    icon: "users",
-    children: [
-      { href: "/app/settings", label: "个人设置" },
-      { href: "/app/profile", label: "个人中心" },
-    ],
-  },
-];
+// 后端下发的菜单树 → 侧边栏数据；label 为中文原文（i18n 回退），icon 需与 AppIcon 图标表对齐
+function toNavItems(nodes: MenuNode[]): SidebarNavigationItem[] {
+  return nodes.map((node) => ({
+    label: node.label,
+    icon: node.icon as SidebarNavigationItem["icon"],
+    href: node.href,
+    end: node.end,
+    children: node.children ? toNavItems(node.children) : undefined,
+  }));
+}
 
 export const meta: MetaFunction = () => [{ title: "Acme Admin" }];
 
@@ -59,12 +38,14 @@ const initialNotifications = [
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const user = await requireUser(request);
-  return { user };
+  const { menus } = await mockApi.menus({ headers: { Cookie: request.headers.get("Cookie") ?? "" } });
+  return { user, menus };
 }
 
 export default function AppLayout() {
-  const { user } = useLoaderData<typeof loader>();
+  const { user, menus } = useLoaderData<typeof loader>();
   const setUser = useAuthStore((state) => state.setUser);
+  const navigationItems = useMemo(() => toNavItems(menus), [menus]);
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
@@ -136,7 +117,7 @@ export default function AppLayout() {
       return null;
     };
     return search(navigationItems, []) ?? ["概览"];
-  }, [location.pathname]);
+  }, [location.pathname, navigationItems]);
 
   // 恢复本地保存的界面偏好；SSR 首帧保持默认值，挂载后再同步，避免水合不一致
   useEffect(() => {

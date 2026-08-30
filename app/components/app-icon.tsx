@@ -40,5 +40,7 @@ const icons = {
 
 export function AppIcon({ name, ...props }: LucideProps & { name: keyof typeof icons }) {
   const Icon = icons[name];
+  // 动态菜单下发的 icon 名可能超出图标表范围（后端数据先行），缺省时不渲染避免崩溃
+  if (!Icon) return null;
   return <Icon aria-hidden="true" {...props} />;
 }

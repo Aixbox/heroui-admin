@@ -21,4 +21,5 @@ export default [
     route("exceptions/403", "routes/app.exceptions.403.tsx"),
     route("exceptions/500", "routes/app.exceptions.500.tsx"),
   ]),
+  route("*", "routes/not-found.tsx"),
 ] satisfies RouteConfig;
