@@ -158,7 +158,6 @@ export default function AppLayout() {
           <span><strong className="block">Acme Admin</strong><small className="text-muted">运营控制台</small></span>
         </Link>
         <nav className="flex flex-1 flex-col gap-1">
-          <p className="px-3 pb-2 text-xs font-medium uppercase tracking-wider text-muted">工作区</p>
           <SidebarNavigation items={navigationItems} pathname={location.pathname} />
         </nav>
         <Separator className="my-4" />

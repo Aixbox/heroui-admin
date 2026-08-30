@@ -81,7 +81,8 @@ function NavigationItems({ items, pathname, depth = 0, parentHasIcon = false, pa
             </Disclosure.Trigger>
           </Disclosure.Heading>
           <Disclosure.Content>
-            <div className="flex flex-col gap-1 py-1">
+            {/* 分组底距只加在一级展开组（8px + 外层 gap 4px = 12px，大于父子间 4px）；深层级不叠加，避免间距随展开深度累积 */}
+            <div className={`flex flex-col gap-1 pt-1${depth === 0 ? " pb-2" : ""}`}>
               <NavigationItems
                 depth={depth + 1}
                 items={item.children}
