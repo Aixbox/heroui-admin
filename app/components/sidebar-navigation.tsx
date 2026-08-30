@@ -3,6 +3,7 @@ import { listboxItemVariants } from "@heroui/styles/components/list-box-item";
 import type { ComponentProps } from "react";
 import { NavLink } from "react-router";
 import { AppIcon } from "~/components/app-icon";
+import { useT } from "~/lib/i18n";
 
 type AppIconName = ComponentProps<typeof AppIcon>["name"];
 const navigationItemStyles = listboxItemVariants();
@@ -36,6 +37,8 @@ type SidebarNavigationProps = {
   items: SidebarNavigationItem[];
   pathname: string;
   collapsed?: boolean;
+  /** 导航链接被点击后触发（如移动端抽屉需要在跳转后关闭） */
+  onNavigate?: () => void;
 };
 
 type NavigationItemsProps = SidebarNavigationProps & {
@@ -67,7 +70,9 @@ function NavigationItems({
   depth = 0,
   parentHasIcon = false,
   parentLabelStart,
+  onNavigate,
 }: NavigationItemsProps) {
+  const t = useT();
   return items.map((item) => {
     const isActive = isItemActive(item, pathname);
     const hasIcon = Boolean(item.icon);
@@ -99,7 +104,7 @@ function NavigationItems({
               style={itemStyle}
             >
               {item.icon ? <AppIcon className="size-4 shrink-0 text-muted" name={item.icon} /> : null}
-              <span className="min-w-0 flex-1 truncate text-start">{item.label}</span>
+              <span className="min-w-0 flex-1 truncate text-start">{t(item.label)}</span>
               <Disclosure.Indicator className="text-muted" />
             </Disclosure.Trigger>
           </Disclosure.Heading>
@@ -124,6 +129,7 @@ function NavigationItems({
       <NavLink
         key={item.href}
         end={item.end}
+        onClick={onNavigate}
         className={({ isActive: isLinkActive }) =>
           navigationItemStyles.item({
             className: `text-start text-sm no-underline ${isLinkActive ? "bg-default font-medium text-default-foreground" : "text-foreground"}`,
@@ -133,7 +139,7 @@ function NavigationItems({
         to={item.href}
       >
         {item.icon ? <AppIcon className="size-4 shrink-0 text-muted" name={item.icon} /> : null}
-        <span className="min-w-0 flex-1 truncate text-start">{item.label}</span>
+        <span className="min-w-0 flex-1 truncate text-start">{t(item.label)}</span>
       </NavLink>
     );
   });
@@ -145,7 +151,8 @@ const collapsedItemStyles = ({ isActive }: { isActive: boolean }) =>
   }`;
 
 /* 折叠态：顶层只显示图标；叶子项直链，分组点击后经 Popover 向右弹出完整子树 */
-function CollapsedNavigation({ items, pathname }: SidebarNavigationProps) {
+function CollapsedNavigation({ items, pathname, onNavigate }: SidebarNavigationProps) {
+  const t = useT();
   return (
     <div className="flex flex-col items-center gap-1">
       {items.map((item) => {
@@ -153,15 +160,15 @@ function CollapsedNavigation({ items, pathname }: SidebarNavigationProps) {
           return (
             <Popover key={item.label}>
               <Popover.Trigger
-                aria-label={item.label}
+                aria-label={t(item.label)}
                 className={collapsedItemStyles({ isActive: isItemActive(item, pathname) })}
-                title={item.label}
+                title={t(item.label)}
               >
                 <NavIcon item={item} />
               </Popover.Trigger>
               <Popover.Content placement="right" offset={8}>
                 <div className="flex max-h-[70vh] w-60 flex-col gap-1 overflow-y-auto p-2">
-                  <NavigationItems items={item.children} pathname={pathname} />
+                  <NavigationItems items={item.children} onNavigate={onNavigate} pathname={pathname} />
                 </div>
               </Popover.Content>
             </Popover>
@@ -173,10 +180,11 @@ function CollapsedNavigation({ items, pathname }: SidebarNavigationProps) {
         return (
           <NavLink
             key={item.href}
-            aria-label={item.label}
+            aria-label={t(item.label)}
             className={({ isActive }) => collapsedItemStyles({ isActive })}
             end={item.end}
-            title={item.label}
+            onClick={onNavigate}
+            title={t(item.label)}
             to={item.href}
           >
             <NavIcon item={item} />
@@ -187,11 +195,11 @@ function CollapsedNavigation({ items, pathname }: SidebarNavigationProps) {
   );
 }
 
-export function SidebarNavigation({ items, pathname, collapsed = false }: SidebarNavigationProps) {
-  if (collapsed) return <CollapsedNavigation items={items} pathname={pathname} />;
+export function SidebarNavigation({ items, pathname, collapsed = false, onNavigate }: SidebarNavigationProps) {
+  if (collapsed) return <CollapsedNavigation items={items} onNavigate={onNavigate} pathname={pathname} />;
   return (
     <div key={pathname} className="flex flex-col gap-1">
-      <NavigationItems items={items} pathname={pathname} />
+      <NavigationItems items={items} onNavigate={onNavigate} pathname={pathname} />
     </div>
   );
 }

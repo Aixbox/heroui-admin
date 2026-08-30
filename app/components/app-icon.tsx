@@ -1,4 +1,5 @@
 import {
+  Bell,
   ChartNoAxesCombined,
   LayoutDashboard,
   LogOut,
@@ -8,6 +9,7 @@ import {
   Moon,
   PanelLeftClose,
   PanelLeftOpen,
+  Search,
   Settings,
   SlidersHorizontal,
   Sun,
@@ -30,6 +32,8 @@ const icons = {
   widthFixed: Minimize2,
   sun: Sun,
   moon: Moon,
+  search: Search,
+  bell: Bell,
 } satisfies Record<string, ComponentType<LucideProps>>;
 
 export function AppIcon({ name, ...props }: LucideProps & { name: keyof typeof icons }) {
