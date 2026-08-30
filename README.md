@@ -27,7 +27,7 @@ pnpm dev
 
 ```text
 邮箱：admin@acme.com
-密码：admin123
+密码：acme-demo-7Kx92m
 ```
 
 ## 路由

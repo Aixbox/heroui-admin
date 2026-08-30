@@ -53,7 +53,7 @@ const translations = {
     noAccount: "还没有账号？",
     registerNow: "立即注册",
     demoAccount: "演示账号：admin@acme.com",
-    demoPassword: "演示密码：admin123",
+    demoPassword: "演示密码：acme-demo-7Kx92m",
     createAccount: "创建账号",
     hasAccount: "已有账号？",
     backToLogin: "返回登录",
@@ -84,7 +84,7 @@ const translations = {
     noAccount: "Don't have an account?",
     registerNow: "Sign up",
     demoAccount: "Demo account: admin@acme.com",
-    demoPassword: "Demo password: admin123",
+    demoPassword: "Demo password: acme-demo-7Kx92m",
     createAccount: "Create account",
     hasAccount: "Already have an account?",
     backToLogin: "Back to sign in",
@@ -137,7 +137,7 @@ export default function LoginPage() {
   const isDark = resolvedTheme === "dark";
   const { control, handleSubmit, formState: { isSubmitting } } = useForm<LoginValues>({
     resolver: zodResolver(schema),
-    defaultValues: { email: "admin@acme.com", password: "admin123" },
+    defaultValues: { email: "admin@acme.com", password: "acme-demo-7Kx92m" },
   });
   const { control: registerControl, handleSubmit: handleRegisterSubmit } = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),

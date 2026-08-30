@@ -22,7 +22,7 @@ const server = createServer(async (req, res) => {
   if (req.method === "GET" && url.pathname === "/mock-api/health") return send(res, 200, { ok: true, mock: true });
   if (req.method === "POST" && url.pathname === "/mock-api/auth/login") {
     const { email, password } = await body(req);
-    if (email !== demoUser.email || password !== "admin123") return send(res, 401, { message: "邮箱或密码不正确" });
+    if (email !== demoUser.email || password !== "acme-demo-7Kx92m") return send(res, 401, { message: "邮箱或密码不正确" });
     const token = randomBytes(24).toString("hex"); sessions.set(token, demoUser);
     return send(res, 200, { user: demoUser }, { "Set-Cookie": `acme_mock_session=${token}; HttpOnly; Path=/; SameSite=Lax; Max-Age=86400` });
   }
