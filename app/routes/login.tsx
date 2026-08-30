@@ -4,7 +4,16 @@ import { Globe2, KeyRound, Languages, LogIn, Moon, Sun, UserPlus } from "lucide-
 import { FaGithub, FaGoogle } from "react-icons/fa6";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { data, redirect, useActionData, useNavigate, useSearchParams, type ActionFunctionArgs, type LoaderFunctionArgs, type MetaFunction } from "react-router";
+import {
+  data,
+  redirect,
+  useActionData,
+  useNavigate,
+  useSearchParams,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
+  type MetaFunction,
+} from "react-router";
 import { z } from "zod";
 import { mockApi } from "~/lib/mock-api";
 import { useAuthStore } from "~/stores/auth";
@@ -15,15 +24,17 @@ const schema = z.object({
 });
 type LoginValues = z.infer<typeof schema>;
 
-const registerSchema = z.object({
-  name: z.string().min(2, "请输入姓名"),
-  email: z.email("请输入有效邮箱"),
-  password: z.string().min(6, "密码至少 6 位"),
-  confirmPassword: z.string().min(6, "请再次输入密码"),
-}).refine((values) => values.password === values.confirmPassword, {
-  message: "两次输入的密码不一致",
-  path: ["confirmPassword"],
-});
+const registerSchema = z
+  .object({
+    name: z.string().min(2, "请输入姓名"),
+    email: z.email("请输入有效邮箱"),
+    password: z.string().min(6, "密码至少 6 位"),
+    confirmPassword: z.string().min(6, "请再次输入密码"),
+  })
+  .refine((values) => values.password === values.confirmPassword, {
+    message: "两次输入的密码不一致",
+    path: ["confirmPassword"],
+  });
 type RegisterValues = z.infer<typeof registerSchema>;
 
 const translations = {
@@ -135,7 +146,11 @@ export default function LoginPage() {
   const [serverError, setServerError] = useState("");
   const t = translations[language];
   const isDark = resolvedTheme === "dark";
-  const { control, handleSubmit, formState: { isSubmitting } } = useForm<LoginValues>({
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<LoginValues>({
     resolver: zodResolver(schema),
     defaultValues: { email: "admin@acme.com", password: "acme-demo-7Kx92m" },
   });
@@ -186,13 +201,22 @@ export default function LoginPage() {
         style={{ backgroundImage: "url('/山峰.jpg')" }}
       />
 
-      <section className="relative flex min-h-[34rem] items-center justify-center px-5 pb-10 pt-24 sm:px-10 lg:px-14 lg:py-16 xl:px-20">
-        <ButtonGroup className="absolute right-5 top-5 sm:right-10 lg:right-6 lg:top-0 xl:right-10" size="sm" variant="tertiary">
+      <section className="relative flex min-h-[34rem] items-center justify-center px-5 pt-24 pb-10 sm:px-10 lg:px-14 lg:py-16 xl:px-20">
+        <ButtonGroup
+          className="absolute top-5 right-5 sm:right-10 lg:top-0 lg:right-6 xl:right-10"
+          size="sm"
+          variant="tertiary"
+        >
           <Button aria-label={t.switchLanguage} className="min-w-20" type="button" onPress={toggleLanguage}>
             <Languages aria-hidden="true" className="size-4" />
             {language === "zh" ? "EN" : "中文"}
           </Button>
-          <Button isIconOnly aria-label={isDark ? t.lightTheme : t.darkTheme} type="button" onPress={() => toggleTheme(isDark ? "light" : "dark")}>
+          <Button
+            isIconOnly
+            aria-label={isDark ? t.lightTheme : t.darkTheme}
+            type="button"
+            onPress={() => toggleTheme(isDark ? "light" : "dark")}
+          >
             <ButtonGroup.Separator />
             {isDark ? <Sun aria-hidden="true" className="size-4" /> : <Moon aria-hidden="true" className="size-4" />}
           </Button>
@@ -202,7 +226,9 @@ export default function LoginPage() {
             <div className="mb-3 grid size-16 place-items-center rounded-2xl bg-accent/15 p-3">
               <img alt="Acme Admin" className="size-full object-contain" src="/logo.svg" />
             </div>
-            <h1 className="font-['Noto_Serif_SC',serif] text-3xl font-black tracking-[-0.04em]">{mode === "login" ? t.loginTitle : t.registerTitle}</h1>
+            <h1 className="font-['Noto_Serif_SC',serif] text-3xl font-black tracking-[-0.04em]">
+              {mode === "login" ? t.loginTitle : t.registerTitle}
+            </h1>
             <p className="text-muted">{mode === "login" ? t.loginDescription : t.registerDescription}</p>
           </div>
           <div className="pt-8">
@@ -210,43 +236,103 @@ export default function LoginPage() {
               <>
                 <Form className="flex flex-col gap-5" method="post" onSubmit={onSubmit} validationBehavior="aria">
                   <input name="redirectTo" type="hidden" value={searchParams.get("redirectTo") || "/app"} />
-                  <Controller control={control} name="email" render={({ field, fieldState }) => (
-                    <TextField fullWidth isInvalid={fieldState.invalid} name={field.name} value={field.value} onChange={field.onChange}>
-                      <Label>{t.email}</Label><Input autoComplete="email" placeholder="admin@acme.com" type="email" />
-                      {fieldState.error ? <FieldError>{fieldState.error.message}</FieldError> : null}
-                    </TextField>
-                  )} />
-                  <Controller control={control} name="password" render={({ field, fieldState }) => (
-                    <TextField fullWidth isInvalid={fieldState.invalid} name={field.name} value={field.value} onChange={field.onChange}>
-                      <Label>{t.password}</Label><Input autoComplete="current-password" placeholder={t.passwordPlaceholder} type="password" />
-                      {fieldState.error ? <FieldError>{fieldState.error.message}</FieldError> : null}
-                    </TextField>
-                  )} />
+                  <Controller
+                    control={control}
+                    name="email"
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        fullWidth
+                        isInvalid={fieldState.invalid}
+                        name={field.name}
+                        value={field.value}
+                        onChange={field.onChange}
+                      >
+                        <Label>{t.email}</Label>
+                        <Input autoComplete="email" placeholder="admin@acme.com" type="email" />
+                        {fieldState.error ? <FieldError>{fieldState.error.message}</FieldError> : null}
+                      </TextField>
+                    )}
+                  />
+                  <Controller
+                    control={control}
+                    name="password"
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        fullWidth
+                        isInvalid={fieldState.invalid}
+                        name={field.name}
+                        value={field.value}
+                        onChange={field.onChange}
+                      >
+                        <Label>{t.password}</Label>
+                        <Input autoComplete="current-password" placeholder={t.passwordPlaceholder} type="password" />
+                        {fieldState.error ? <FieldError>{fieldState.error.message}</FieldError> : null}
+                      </TextField>
+                    )}
+                  />
                   <div className="flex items-center justify-between gap-4">
                     <Checkbox className="text-sm" name="rememberAccount">
                       <Checkbox.Content>
-                        <Checkbox.Control><Checkbox.Indicator /></Checkbox.Control>
+                        <Checkbox.Control>
+                          <Checkbox.Indicator />
+                        </Checkbox.Control>
                         {t.rememberAccount}
                       </Checkbox.Content>
                     </Checkbox>
-                    <button className="inline-flex items-center gap-1.5 text-sm font-medium text-accent underline-offset-4 hover:underline" type="button"><KeyRound aria-hidden="true" className="size-3.5" />{t.forgotPassword}</button>
+                    <button
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-accent underline-offset-4 hover:underline"
+                      type="button"
+                    >
+                      <KeyRound aria-hidden="true" className="size-3.5" />
+                      {t.forgotPassword}
+                    </button>
                   </div>
-                  {serverError || actionData?.error ? <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{serverError || actionData?.error}</p> : null}
-                  <Button fullWidth isPending={isSubmitting} type="submit" variant="primary">{isSubmitting ? t.signingIn : t.signIn}</Button>
+                  {serverError || actionData?.error ? (
+                    <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">
+                      {serverError || actionData?.error}
+                    </p>
+                  ) : null}
+                  <Button fullWidth isPending={isSubmitting} type="submit" variant="primary">
+                    {isSubmitting ? t.signingIn : t.signIn}
+                  </Button>
                 </Form>
                 <div className="mt-6 space-y-5">
                   <div className="relative flex items-center">
                     <span className="w-full border-t border-separator" />
-                    <p className="mx-3 shrink-0 text-xs uppercase tracking-[0.16em] text-muted">{t.otherMethods}</p>
+                    <p className="mx-3 shrink-0 text-xs tracking-[0.16em] text-muted uppercase">{t.otherMethods}</p>
                     <span className="w-full border-t border-separator" />
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <Button fullWidth type="button" variant="outline"><span className="mr-2 inline-flex size-4 shrink-0 items-center justify-center leading-none"><FaGoogle aria-hidden="true" className="block size-4" /></span>Google</Button>
-                    <Button fullWidth type="button" variant="outline"><span className="mr-2 inline-flex size-4 shrink-0 items-center justify-center leading-none"><FaGithub aria-hidden="true" className="block size-4" /></span>GitHub</Button>
+                    <Button fullWidth type="button" variant="outline">
+                      <span className="mr-2 inline-flex size-4 shrink-0 items-center justify-center leading-none">
+                        <FaGoogle aria-hidden="true" className="block size-4" />
+                      </span>
+                      Google
+                    </Button>
+                    <Button fullWidth type="button" variant="outline">
+                      <span className="mr-2 inline-flex size-4 shrink-0 items-center justify-center leading-none">
+                        <FaGithub aria-hidden="true" className="block size-4" />
+                      </span>
+                      GitHub
+                    </Button>
                   </div>
-                  <Button fullWidth type="button" variant="secondary"><Globe2 aria-hidden="true" className="mr-2 size-4" />{t.oidc}</Button>
+                  <Button fullWidth type="button" variant="secondary">
+                    <Globe2 aria-hidden="true" className="mr-2 size-4" />
+                    {t.oidc}
+                  </Button>
                   <p className="text-center text-sm text-muted">
-                    {t.noAccount} <button className="inline-flex items-center gap-1.5 font-medium text-accent underline-offset-4 hover:underline" onClick={() => { setMode("register"); setServerError(""); }} type="button"><UserPlus aria-hidden="true" className="size-3.5" />{t.registerNow}</button>
+                    {t.noAccount}{" "}
+                    <button
+                      className="inline-flex items-center gap-1.5 font-medium text-accent underline-offset-4 hover:underline"
+                      onClick={() => {
+                        setMode("register");
+                        setServerError("");
+                      }}
+                      type="button"
+                    >
+                      <UserPlus aria-hidden="true" className="size-3.5" />
+                      {t.registerNow}
+                    </button>
                   </p>
                   <div className="rounded-xl bg-surface-secondary p-3 text-sm text-muted">
                     <p>{t.demoAccount}</p>
@@ -256,35 +342,93 @@ export default function LoginPage() {
               </>
             ) : (
               <>
-                <Form className="flex flex-col gap-5" onSubmit={handleRegisterSubmit(() => undefined)} validationBehavior="aria">
-                  <Controller control={registerControl} name="name" render={({ field, fieldState }) => (
-                    <TextField fullWidth isInvalid={fieldState.invalid} name={field.name} value={field.value} onChange={field.onChange}>
-                      <Label>{t.name}</Label><Input autoComplete="name" placeholder={t.namePlaceholder} />
-                      {fieldState.error ? <FieldError>{fieldState.error.message}</FieldError> : null}
-                    </TextField>
-                  )} />
-                  <Controller control={registerControl} name="email" render={({ field, fieldState }) => (
-                    <TextField fullWidth isInvalid={fieldState.invalid} name={field.name} value={field.value} onChange={field.onChange}>
-                      <Label>{t.email}</Label><Input autoComplete="email" placeholder="name@example.com" type="email" />
-                      {fieldState.error ? <FieldError>{fieldState.error.message}</FieldError> : null}
-                    </TextField>
-                  )} />
-                  <Controller control={registerControl} name="password" render={({ field, fieldState }) => (
-                    <TextField fullWidth isInvalid={fieldState.invalid} name={field.name} value={field.value} onChange={field.onChange}>
-                      <Label>{t.password}</Label><Input autoComplete="new-password" placeholder={t.newPasswordPlaceholder} type="password" />
-                      {fieldState.error ? <FieldError>{fieldState.error.message}</FieldError> : null}
-                    </TextField>
-                  )} />
-                  <Controller control={registerControl} name="confirmPassword" render={({ field, fieldState }) => (
-                    <TextField fullWidth isInvalid={fieldState.invalid} name={field.name} value={field.value} onChange={field.onChange}>
-                      <Label>{t.confirmPassword}</Label><Input autoComplete="new-password" placeholder={t.confirmPasswordPlaceholder} type="password" />
-                      {fieldState.error ? <FieldError>{fieldState.error.message}</FieldError> : null}
-                    </TextField>
-                  )} />
-                  <Button className="mt-2" fullWidth type="submit" variant="primary">{t.createAccount}</Button>
+                <Form
+                  className="flex flex-col gap-5"
+                  onSubmit={handleRegisterSubmit(() => undefined)}
+                  validationBehavior="aria"
+                >
+                  <Controller
+                    control={registerControl}
+                    name="name"
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        fullWidth
+                        isInvalid={fieldState.invalid}
+                        name={field.name}
+                        value={field.value}
+                        onChange={field.onChange}
+                      >
+                        <Label>{t.name}</Label>
+                        <Input autoComplete="name" placeholder={t.namePlaceholder} />
+                        {fieldState.error ? <FieldError>{fieldState.error.message}</FieldError> : null}
+                      </TextField>
+                    )}
+                  />
+                  <Controller
+                    control={registerControl}
+                    name="email"
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        fullWidth
+                        isInvalid={fieldState.invalid}
+                        name={field.name}
+                        value={field.value}
+                        onChange={field.onChange}
+                      >
+                        <Label>{t.email}</Label>
+                        <Input autoComplete="email" placeholder="name@example.com" type="email" />
+                        {fieldState.error ? <FieldError>{fieldState.error.message}</FieldError> : null}
+                      </TextField>
+                    )}
+                  />
+                  <Controller
+                    control={registerControl}
+                    name="password"
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        fullWidth
+                        isInvalid={fieldState.invalid}
+                        name={field.name}
+                        value={field.value}
+                        onChange={field.onChange}
+                      >
+                        <Label>{t.password}</Label>
+                        <Input autoComplete="new-password" placeholder={t.newPasswordPlaceholder} type="password" />
+                        {fieldState.error ? <FieldError>{fieldState.error.message}</FieldError> : null}
+                      </TextField>
+                    )}
+                  />
+                  <Controller
+                    control={registerControl}
+                    name="confirmPassword"
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        fullWidth
+                        isInvalid={fieldState.invalid}
+                        name={field.name}
+                        value={field.value}
+                        onChange={field.onChange}
+                      >
+                        <Label>{t.confirmPassword}</Label>
+                        <Input autoComplete="new-password" placeholder={t.confirmPasswordPlaceholder} type="password" />
+                        {fieldState.error ? <FieldError>{fieldState.error.message}</FieldError> : null}
+                      </TextField>
+                    )}
+                  />
+                  <Button className="mt-2" fullWidth type="submit" variant="primary">
+                    {t.createAccount}
+                  </Button>
                 </Form>
                 <p className="mt-6 text-center text-sm text-muted">
-                  {t.hasAccount} <button className="inline-flex items-center gap-1.5 font-medium text-accent underline-offset-4 hover:underline" onClick={() => setMode("login")} type="button"><LogIn aria-hidden="true" className="size-3.5" />{t.backToLogin}</button>
+                  {t.hasAccount}{" "}
+                  <button
+                    className="inline-flex items-center gap-1.5 font-medium text-accent underline-offset-4 hover:underline"
+                    onClick={() => setMode("login")}
+                    type="button"
+                  >
+                    <LogIn aria-hidden="true" className="size-3.5" />
+                    {t.backToLogin}
+                  </button>
                 </p>
               </>
             )}

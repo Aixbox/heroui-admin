@@ -49,15 +49,22 @@ function isItemActive(item: SidebarNavigationItem, pathname: string): boolean {
   return item.end ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-function NavigationItems({ items, pathname, depth = 0, parentHasIcon = false, parentLabelStart }: NavigationItemsProps) {
+function NavigationItems({
+  items,
+  pathname,
+  depth = 0,
+  parentHasIcon = false,
+  parentLabelStart,
+}: NavigationItemsProps) {
   return items.map((item) => {
     const isActive = isItemActive(item, pathname);
     const hasIcon = Boolean(item.icon);
     const rowInset = depth * nestedRowInset;
     const contentIndent = parentHasIcon ? firstTextOnlyIndent : textOnlyIndent;
-    const labelStart = depth === 0
-      ? itemPadding + (hasIcon ? iconSlot : 0)
-      : (parentLabelStart ?? itemPadding) + contentIndent + (hasIcon ? iconSlot : 0);
+    const labelStart =
+      depth === 0
+        ? itemPadding + (hasIcon ? iconSlot : 0)
+        : (parentLabelStart ?? itemPadding) + contentIndent + (hasIcon ? iconSlot : 0);
 
     const itemStyle = {
       columnGap: `${iconGap}px`,
@@ -82,7 +89,7 @@ function NavigationItems({ items, pathname, depth = 0, parentHasIcon = false, pa
           </Disclosure.Heading>
           <Disclosure.Content>
             {/* 分组底距只加在一级展开组（8px + 外层 gap 4px = 12px，大于父子间 4px）；深层级不叠加，避免间距随展开深度累积 */}
-            <div className={`flex flex-col gap-1 pt-1${depth === 0 ? " pb-2" : ""}`}>
+            <div className={`flex flex-col gap-1 pt-1${depth === 0 ? "pb-2" : ""}`}>
               <NavigationItems
                 depth={depth + 1}
                 items={item.children}
@@ -102,9 +109,11 @@ function NavigationItems({ items, pathname, depth = 0, parentHasIcon = false, pa
       <NavLink
         key={item.href}
         end={item.end}
-        className={({ isActive: isLinkActive }) => navigationItemStyles.item({
-          className: `text-start text-sm no-underline ${isLinkActive ? "bg-default font-medium text-default-foreground" : "text-foreground"}`,
-        })}
+        className={({ isActive: isLinkActive }) =>
+          navigationItemStyles.item({
+            className: `text-start text-sm no-underline ${isLinkActive ? "bg-default font-medium text-default-foreground" : "text-foreground"}`,
+          })
+        }
         style={itemStyle}
         to={item.href}
       >
@@ -116,5 +125,9 @@ function NavigationItems({ items, pathname, depth = 0, parentHasIcon = false, pa
 }
 
 export function SidebarNavigation({ items, pathname }: SidebarNavigationProps) {
-  return <div key={pathname} className="flex flex-col gap-1"><NavigationItems items={items} pathname={pathname} /></div>;
+  return (
+    <div key={pathname} className="flex flex-col gap-1">
+      <NavigationItems items={items} pathname={pathname} />
+    </div>
+  );
 }

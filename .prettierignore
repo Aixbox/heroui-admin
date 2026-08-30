@@ -1,0 +1,10 @@
+.react-router
+.heroui-docs
+build
+dist
+coverage
+worker-configuration.d.ts
+pnpm-lock.yaml
+AGENTS.md
+public
+.husky

@@ -27,6 +27,8 @@ export default defineConfig([
     "**/coverage",
     "**/build",
     "**/.react-router",
+    "**/.heroui-docs",
+    "**/worker-configuration.d.ts",
     "**/*.config.js",
     "**/*.config.cjs",
     "**/*.config.mjs",
