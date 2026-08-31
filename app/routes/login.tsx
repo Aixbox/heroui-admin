@@ -1,5 +1,16 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, ButtonGroup, Checkbox, FieldError, Form, Input, Label, TextField, useTheme } from "@heroui/react";
+import {
+  Button,
+  ButtonGroup,
+  Checkbox,
+  FieldError,
+  Form,
+  Input,
+  Label,
+  TextField,
+  toast,
+  useTheme,
+} from "@heroui/react";
 import { Globe2, KeyRound, Languages, LogIn, Moon, Sun, UserPlus } from "lucide-react";
 import { FaGithub, FaGoogle } from "react-icons/fa6";
 import { useState } from "react";
@@ -121,11 +132,14 @@ export async function action({ request }: ActionFunctionArgs) {
   });
   if (!result.success) return data({ error: "请检查邮箱和密码格式" }, { status: 400 });
 
-  const response = await fetch(`${process.env.MOCK_API_URL ?? "http://localhost:8787"}/mock-api/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(result.data),
-  });
+  const response = await fetch(
+    `${process.env.API_BASE_URL ?? process.env.MOCK_API_URL ?? "http://localhost:8787"}/mock-api/auth/login`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(result.data),
+    },
+  );
   const payload = (await response.json()) as { message?: string };
   if (!response.ok) return data({ error: payload.message ?? "登录失败" }, { status: response.status });
 
@@ -154,7 +168,11 @@ export default function LoginPage() {
     resolver: zodResolver(schema),
     defaultValues: { email: "admin@acme.com", password: "acme-demo-7Kx92m" },
   });
-  const { control: registerControl, handleSubmit: handleRegisterSubmit } = useForm<RegisterValues>({
+  const {
+    control: registerControl,
+    handleSubmit: handleRegisterSubmit,
+    formState: { isSubmitting: isRegistering },
+  } = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
   });
@@ -167,6 +185,18 @@ export default function LoginPage() {
       navigate(searchParams.get("redirectTo") || "/app", { replace: true });
     } catch (error) {
       setServerError(error instanceof Error ? error.message : "登录失败");
+    }
+  });
+
+  const onRegisterSubmit = handleRegisterSubmit(async ({ name, email, password }) => {
+    setServerError("");
+    try {
+      const { user } = await mockApi.register({ name, email, password });
+      setUser(user);
+      toast.success("账号创建成功");
+      navigate("/app", { replace: true });
+    } catch (error) {
+      setServerError(error instanceof Error ? error.message : "注册失败");
     }
   });
 
@@ -281,6 +311,7 @@ export default function LoginPage() {
                     </Checkbox>
                     <button
                       className="inline-flex items-center gap-1.5 text-sm font-medium text-accent underline-offset-4 hover:underline"
+                      onClick={() => toast.info("请联系管理员或接入正式身份服务完成密码重置")}
                       type="button"
                     >
                       <KeyRound aria-hidden="true" className="size-3.5" />
@@ -303,20 +334,35 @@ export default function LoginPage() {
                     <span className="w-full border-t border-separator" />
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <Button fullWidth type="button" variant="outline">
+                    <Button
+                      fullWidth
+                      type="button"
+                      variant="outline"
+                      onPress={() => toast.info("请在生产环境配置 Google OAuth")}
+                    >
                       <span className="mr-2 inline-flex size-4 shrink-0 items-center justify-center leading-none">
                         <FaGoogle aria-hidden="true" className="block size-4" />
                       </span>
                       Google
                     </Button>
-                    <Button fullWidth type="button" variant="outline">
+                    <Button
+                      fullWidth
+                      type="button"
+                      variant="outline"
+                      onPress={() => toast.info("请在生产环境配置 GitHub OAuth")}
+                    >
                       <span className="mr-2 inline-flex size-4 shrink-0 items-center justify-center leading-none">
                         <FaGithub aria-hidden="true" className="block size-4" />
                       </span>
                       GitHub
                     </Button>
                   </div>
-                  <Button fullWidth type="button" variant="secondary">
+                  <Button
+                    fullWidth
+                    type="button"
+                    variant="secondary"
+                    onPress={() => toast.info("请在生产环境配置 OIDC")}
+                  >
                     <Globe2 aria-hidden="true" className="mr-2 size-4" />
                     {t.oidc}
                   </Button>
@@ -342,11 +388,7 @@ export default function LoginPage() {
               </>
             ) : (
               <>
-                <Form
-                  className="flex flex-col gap-5"
-                  onSubmit={handleRegisterSubmit(() => undefined)}
-                  validationBehavior="aria"
-                >
+                <Form className="flex flex-col gap-5" onSubmit={onRegisterSubmit} validationBehavior="aria">
                   <Controller
                     control={registerControl}
                     name="name"
@@ -415,7 +457,10 @@ export default function LoginPage() {
                       </TextField>
                     )}
                   />
-                  <Button className="mt-2" fullWidth type="submit" variant="primary">
+                  {serverError ? (
+                    <p className="rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">{serverError}</p>
+                  ) : null}
+                  <Button className="mt-2" fullWidth isPending={isRegistering} type="submit" variant="primary">
                     {t.createAccount}
                   </Button>
                 </Form>

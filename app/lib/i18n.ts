@@ -65,6 +65,7 @@ const en: Record<string, string> = {
   进入全屏: "Enter fullscreen",
   退出全屏: "Exit fullscreen",
   关闭标签页: "Close tab",
+  暂无打开页面: "No open pages",
 };
 
 export type Translator = (text: string) => string;

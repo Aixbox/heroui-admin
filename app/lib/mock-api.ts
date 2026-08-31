@@ -38,6 +38,19 @@ export interface UserListItem {
   status: string;
 }
 
+export interface UserInput {
+  name: string;
+  email: string;
+  role: UserRole;
+  status: "活跃" | "待审核" | "停用";
+}
+
+export interface UserSettings {
+  orderNotifications: boolean;
+  memberNotifications: boolean;
+  weeklySummary: boolean;
+}
+
 /** 通用分页查询参数与结果（所有列表类接口统一契约） */
 export interface PageQuery {
   page?: number;
@@ -51,47 +64,41 @@ export interface PageResult<T> {
   page: number;
   pageSize: number;
 }
-export interface MockApiError {
-  message: string;
-  fieldErrors?: Record<string, string>;
-}
-
-const getMockApiBaseUrl = () =>
-  typeof window !== "undefined" ? "" : (process.env.MOCK_API_URL ?? "http://localhost:8787");
-
-async function mockRequest<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${getMockApiBaseUrl()}${path}`, {
-    ...init,
-    credentials: "include",
-    headers: { "Content-Type": "application/json", ...init?.headers },
-  });
-  if (!response.ok) {
-    // 浏览器端会话失效：全局跳转登录页（服务端由 loader 里的 requireUser 负责重定向）
-    if (response.status === 401 && typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
-      const redirectTo = encodeURIComponent(window.location.pathname + window.location.search);
-      window.location.assign(`/login?redirectTo=${redirectTo}`);
-    }
-    const error = (await response.json().catch(() => ({}))) as MockApiError;
-    throw Object.assign(new Error(error.message || "Mock 请求失败"), error);
-  }
-  return response.json() as Promise<T>;
-}
-
 /** 仅用于本地联调。接入正式后端时请替换此模块，不要复用 Mock 接口契约。 */
 export const mockApi = {
-  me: (requestInit?: RequestInit) => mockRequest<{ user: User }>("/mock-api/auth/me", requestInit),
+  me: (requestInit?: RequestInit) => apiRequest<{ user: User }>("/mock-api/auth/me", requestInit),
   /** 后端按角色过滤后的菜单树 */
-  menus: (requestInit?: RequestInit) => mockRequest<{ menus: MenuNode[] }>("/mock-api/auth/menus", requestInit),
+  menus: (requestInit?: RequestInit) => apiRequest<{ menus: MenuNode[] }>("/mock-api/auth/menus", requestInit),
   login: (email: string, password: string) =>
-    mockRequest<{ user: User }>("/mock-api/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
-  logout: () => mockRequest<{ ok: true }>("/mock-api/auth/logout", { method: "POST" }),
-  stats: (requestInit?: RequestInit) => mockRequest<DashboardStats>("/mock-api/dashboard/stats", requestInit),
+    apiRequest<{ user: User }>("/mock-api/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
+  register: (input: { name: string; email: string; password: string }) =>
+    apiRequest<{ user: User }>("/mock-api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  logout: () => apiRequest<{ ok: true }>("/mock-api/auth/logout", { method: "POST" }),
+  stats: (requestInit?: RequestInit) => apiRequest<DashboardStats>("/mock-api/dashboard/stats", requestInit),
   users: (params: PageQuery = {}, requestInit?: RequestInit) => {
     const search = new URLSearchParams({
       page: String(params.page ?? 1),
       pageSize: String(params.pageSize ?? 10),
     });
     if (params.keyword) search.set("keyword", params.keyword);
-    return mockRequest<PageResult<UserListItem>>(`/mock-api/users?${search.toString()}`, requestInit);
+    return apiRequest<PageResult<UserListItem>>(`/mock-api/users?${search.toString()}`, requestInit);
   },
+  createUser: (input: UserInput) =>
+    apiRequest<{ user: UserListItem }>("/mock-api/users", { method: "POST", body: JSON.stringify(input) }),
+  updateUser: (id: string, input: Partial<UserInput>) =>
+    apiRequest<{ user: UserListItem }>(`/mock-api/users/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  deleteUser: (id: string) =>
+    apiRequest<{ ok: true }>(`/mock-api/users/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  settings: (requestInit?: RequestInit) => apiRequest<UserSettings>("/mock-api/profile/settings", requestInit),
+  updateSettings: (settings: UserSettings) =>
+    apiRequest<UserSettings>("/mock-api/profile/settings", { method: "PUT", body: JSON.stringify(settings) }),
+  updateProfile: (input: { name: string }) =>
+    apiRequest<{ user: User }>("/mock-api/profile", { method: "PUT", body: JSON.stringify(input) }),
 };
+import { apiRequest } from "./api-client";

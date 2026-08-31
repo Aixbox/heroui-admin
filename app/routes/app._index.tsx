@@ -1,6 +1,7 @@
 import { Card, Chip, Table } from "@heroui/react";
-import type { LoaderFunctionArgs } from "react-router";
+import { useLoaderData, type LoaderFunctionArgs } from "react-router";
 import { requireUser } from "~/lib/auth";
+import { mockApi } from "~/lib/mock-api";
 import {
   Area,
   AreaChart,
@@ -20,17 +21,11 @@ import {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireUser(request);
-  return null;
+  const stats = await mockApi.stats({ headers: { Cookie: request.headers.get("Cookie") ?? "" } });
+  return { stats };
 }
 
-// 以下均为演示用 Mock 数据，接入正式后端后替换
-const stats = [
-  { label: "使用量", value: "32,480", detail: "较上月 +12.5%", up: true },
-  { label: "下载量", value: "18,924", detail: "较上月 +8.2%", up: true },
-  { label: "用户数", value: "8,420", detail: "较上月 +5.4%", up: true },
-  { label: "访问量", value: "126,730", detail: "较上月 -2.1%", up: false },
-];
-
+// 趋势图仍使用本地演示序列；核心指标通过 API loader 获取。
 const monthly = [
   { month: "1月", visits: 6200, downloads: 2100, newUsers: 380, activeUsers: 4100 },
   { month: "2月", visits: 7100, downloads: 2400, newUsers: 420, activeUsers: 4400 },
@@ -69,6 +64,13 @@ const orders = [
 const statusColor = { 已支付: "success", 待支付: "warning", 已退款: "danger" } as const;
 
 export default function DashboardPage() {
+  const { stats: dashboardStats } = useLoaderData<typeof loader>();
+  const stats = [
+    { label: "营业收入", value: dashboardStats.revenue, detail: "较上月 +12.5%", up: true },
+    { label: "订单数", value: dashboardStats.orders.toLocaleString(), detail: "较上月 +8.2%", up: true },
+    { label: "用户数", value: dashboardStats.customers.toLocaleString(), detail: "较上月 +5.4%", up: true },
+    { label: "转化率", value: dashboardStats.conversion, detail: "较上月 -2.1%", up: false },
+  ];
   return (
     <div className="space-y-8">
       <div>

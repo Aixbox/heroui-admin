@@ -1,4 +1,15 @@
-import { Avatar, Badge, Breadcrumbs, Button, Drawer, Link, Popover, useOverlayState, useTheme } from "@heroui/react";
+import {
+  Avatar,
+  Badge,
+  Breadcrumbs,
+  Button,
+  Drawer,
+  EmptyState,
+  Link,
+  Popover,
+  useOverlayState,
+  useTheme,
+} from "@heroui/react";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import {
   Outlet,
@@ -45,6 +56,7 @@ export default function AppLayout() {
   const notifState = useOverlayState();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [tabs, setTabs] = useState<TabItem[]>(() => [{ path: "/app", label: "概览" }]);
+  const tabsRestored = useRef(false);
   const [notifications, setNotifications] = useState(initialNotifications);
   const { resolvedTheme, setTheme } = useTheme("system");
   const locale = useUiStore((state) => state.locale);
@@ -87,6 +99,7 @@ export default function AppLayout() {
   };
 
   const unreadCount = notifications.filter((item) => item.unread).length;
+  const hasActiveTab = tabs.some((tab) => tab.path === location.pathname);
   const markAllRead = () => setNotifications((list) => list.map((item) => ({ ...item, unread: false })));
 
   // 通知面板：悬停铃铛或面板时保持打开，移出 150ms 后关闭（定时器用于跨越两者间隙时不闪烁）
@@ -110,13 +123,18 @@ export default function AppLayout() {
     [location.pathname, navigationItems],
   );
 
-  // 多标签页：进入新路由时记录页签；关闭当前页签时回退到相邻页签（概览页签固定）
+  // 多标签页：进入新路由时记录页签；关闭当前页签时回退到相邻页签。
   useEffect(() => {
     const label = trail[trail.length - 1] ?? "概览";
     setTabs((prev) =>
       prev.some((tab) => tab.path === location.pathname) ? prev : [...prev, { path: location.pathname, label }],
     );
   }, [location.pathname, trail]);
+  const openTab = (path: string) => {
+    const pathTrail = findMenuTrail(navigationItems, path) ?? ["概览"];
+    const label = pathTrail[pathTrail.length - 1] ?? "概览";
+    setTabs((prev) => (prev.some((tab) => tab.path === path) ? prev : [...prev, { path, label }]));
+  };
   const closeTab = (path: string) => {
     setTabs((prevTabs) => {
       const index = prevTabs.findIndex((tab) => tab.path === path);
@@ -135,13 +153,27 @@ export default function AppLayout() {
     setFullWidth(localStorage.getItem("acme.content.fullWidth") === "1");
     const savedLocale = localStorage.getItem("acme.locale");
     if (savedLocale === "zh" || savedLocale === "en") setLocale(savedLocale);
-  }, [setLocale]);
+    try {
+      const savedTabs = JSON.parse(localStorage.getItem("acme.tabs") ?? "[]") as TabItem[];
+      const validTabs = savedTabs.filter(
+        (tab) => typeof tab?.path === "string" && tab.path.startsWith("/app") && typeof tab.label === "string",
+      );
+      const currentTab = { path: location.pathname, label: trail[trail.length - 1] ?? "概览" };
+      setTabs(validTabs.some((tab) => tab.path === currentTab.path) ? validTabs : [...validTabs, currentTab]);
+    } catch {
+      setTabs([{ path: location.pathname, label: trail[trail.length - 1] ?? "概览" }]);
+    }
+    tabsRestored.current = true;
+  }, [location.pathname, setLocale, trail]);
   useEffect(() => {
     localStorage.setItem("acme.sidebar.collapsed", collapsed ? "1" : "0");
   }, [collapsed]);
   useEffect(() => {
     localStorage.setItem("acme.content.fullWidth", fullWidth ? "1" : "0");
   }, [fullWidth]);
+  useEffect(() => {
+    if (tabsRestored.current) localStorage.setItem("acme.tabs", JSON.stringify(tabs));
+  }, [tabs]);
 
   // Ctrl/Cmd + K 打开全局搜索
   useEffect(() => {
@@ -169,6 +201,7 @@ export default function AppLayout() {
           <Link
             className={`mb-8 flex items-center gap-3 text-foreground no-underline ${collapsed ? "justify-center px-0" : "px-3"}`}
             href="/app"
+            onPress={() => openTab("/app")}
           >
             <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground">
               <img alt="Acme Admin" className="size-6 object-contain brightness-0 invert" src="/logo.svg" />
@@ -181,7 +214,12 @@ export default function AppLayout() {
             )}
           </Link>
           <nav className="flex flex-1 flex-col gap-1">
-            <SidebarNavigation collapsed={collapsed} items={navigationItems} pathname={location.pathname} />
+            <SidebarNavigation
+              collapsed={collapsed}
+              items={navigationItems}
+              onNavigate={openTab}
+              pathname={hasActiveTab ? location.pathname : ""}
+            />
           </nav>
         </div>
       </aside>
@@ -359,8 +397,8 @@ export default function AppLayout() {
             </div>
           </div>
         </header>
-        {/* 多标签页栏：记录访问过的页面，点击切换、悬停出现关闭按钮；概览页签固定 */}
-        <div className="sticky top-14 z-10 flex items-center gap-0 overflow-x-auto border-b border-separator bg-surface/60 px-3 py-1 backdrop-blur-lg sm:px-4">
+        {/* 多标签页栏：记录访问过的页面，点击切换、悬停出现关闭按钮。 */}
+        <div className="sticky top-14 z-10 flex h-9 items-center gap-0 overflow-x-auto border-b border-separator bg-surface/60 px-3 py-1 backdrop-blur-lg sm:px-4">
           {tabs.map((tab, index) => {
             const isActive = tab.path === location.pathname;
             return (
@@ -385,25 +423,32 @@ export default function AppLayout() {
                   <button type="button" className="cursor-pointer" onClick={() => navigate(tab.path)}>
                     {t(tab.label)}
                   </button>
-                  {tab.path !== "/app" && (
-                    <button
-                      type="button"
-                      aria-label={`${t("关闭标签页")} ${t(tab.label)}`}
-                      className={`cursor-pointer rounded transition hover:bg-default ${
-                        isActive ? "opacity-70" : "opacity-0 group-hover:opacity-70"
-                      }`}
-                      onClick={() => closeTab(tab.path)}
-                    >
-                      <AppIcon className="size-3" name="close" />
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    aria-label={`${t("关闭标签页")} ${t(tab.label)}`}
+                    className={`cursor-pointer rounded transition hover:bg-default ${
+                      isActive ? "opacity-70" : "opacity-0 group-hover:opacity-70"
+                    }`}
+                    onClick={() => closeTab(tab.path)}
+                  >
+                    <AppIcon className="size-3" name="close" />
+                  </button>
                 </div>
               </Fragment>
             );
           })}
         </div>
         <main className={fullWidth ? "p-4 sm:p-8" : "mx-auto max-w-7xl p-4 sm:p-8"}>
-          <Outlet />
+          {hasActiveTab ? (
+            <Outlet />
+          ) : (
+            <EmptyState className="flex min-h-[calc(100vh-10rem)] flex-col items-center justify-center gap-3 text-center">
+              <span className="grid size-12 place-items-center rounded-xl border border-dashed border-separator bg-surface/50 text-muted">
+                <AppIcon className="size-6" name="emptyTabs" strokeWidth={1.75} />
+              </span>
+              <p className="text-base font-medium text-muted">{t("暂无打开页面")}</p>
+            </EmptyState>
+          )}
         </main>
       </div>
       <Drawer isOpen={mobileOpen} onOpenChange={setMobileOpen}>
@@ -418,8 +463,11 @@ export default function AppLayout() {
                 <nav className="flex flex-col gap-1 pb-2">
                   <SidebarNavigation
                     items={navigationItems}
-                    onNavigate={() => setMobileOpen(false)}
-                    pathname={location.pathname}
+                    onNavigate={(path) => {
+                      openTab(path);
+                      setMobileOpen(false);
+                    }}
+                    pathname={hasActiveTab ? location.pathname : ""}
                   />
                 </nav>
               </Drawer.Body>
@@ -427,7 +475,7 @@ export default function AppLayout() {
           </Drawer.Content>
         </Drawer.Backdrop>
       </Drawer>
-      <CommandPalette items={navigationItems} isOpen={searchOpen} onOpenChange={setSearchOpen} />
+      <CommandPalette items={navigationItems} isOpen={searchOpen} onNavigate={openTab} onOpenChange={setSearchOpen} />
     </div>
   );
 }

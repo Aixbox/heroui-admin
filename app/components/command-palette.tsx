@@ -8,6 +8,7 @@ type CommandPaletteProps = {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   items: SidebarNavigationItem[];
+  onNavigate?: (href: string) => void;
 };
 
 type FlatPage = { label: string; href: string; trail: string[] };
@@ -22,7 +23,7 @@ function flattenPages(items: SidebarNavigationItem[], trail: string[]): FlatPage
   });
 }
 
-export function CommandPalette({ isOpen, onOpenChange, items }: CommandPaletteProps) {
+export function CommandPalette({ isOpen, onOpenChange, items, onNavigate }: CommandPaletteProps) {
   const t = useT();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -69,6 +70,7 @@ export function CommandPalette({ isOpen, onOpenChange, items }: CommandPalettePr
                         type="button"
                         className="flex flex-col gap-0.5 rounded-lg px-3 py-2 text-start text-sm text-foreground transition hover:bg-surface-secondary"
                         onClick={() => {
+                          onNavigate?.(page.href);
                           navigate(page.href);
                           setQuery("");
                           onOpenChange(false);

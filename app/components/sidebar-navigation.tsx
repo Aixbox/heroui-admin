@@ -37,8 +37,8 @@ type SidebarNavigationProps = {
   items: SidebarNavigationItem[];
   pathname: string;
   collapsed?: boolean;
-  /** 导航链接被点击后触发（如移动端抽屉需要在跳转后关闭） */
-  onNavigate?: () => void;
+  /** 导航链接被点击后触发，并回传目标路径。 */
+  onNavigate?: (href: string) => void;
 };
 
 type NavigationItemsProps = SidebarNavigationProps & {
@@ -124,19 +124,20 @@ function NavigationItems({
     }
 
     if (!item.href) return null;
+    const href = item.href;
 
     return (
       <NavLink
-        key={item.href}
+        key={href}
         end={item.end}
-        onClick={onNavigate}
+        onClick={() => onNavigate?.(href)}
         className={({ isActive: isLinkActive }) =>
           navigationItemStyles.item({
             className: `text-start text-sm no-underline ${isLinkActive ? "bg-default font-medium text-default-foreground" : "text-foreground"}`,
           })
         }
         style={itemStyle}
-        to={item.href}
+        to={href}
       >
         {item.icon ? <AppIcon className="size-4 shrink-0 text-muted" name={item.icon} /> : null}
         <span className="min-w-0 flex-1 truncate text-start">{t(item.label)}</span>
@@ -176,16 +177,17 @@ function CollapsedNavigation({ items, pathname, onNavigate }: SidebarNavigationP
         }
 
         if (!item.href) return null;
+        const href = item.href;
 
         return (
           <NavLink
-            key={item.href}
+            key={href}
             aria-label={t(item.label)}
             className={({ isActive }) => collapsedItemStyles({ isActive })}
             end={item.end}
-            onClick={onNavigate}
+            onClick={() => onNavigate?.(href)}
             title={t(item.label)}
-            to={item.href}
+            to={href}
           >
             <NavIcon item={item} />
           </NavLink>

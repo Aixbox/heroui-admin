@@ -99,6 +99,13 @@ const mockUsers = [
   { id: "usr_014", name: "Margaret Hamilton", email: "margaret@acme.com", role: "编辑者", status: "活跃" },
 ];
 
+const profileSettings = new Map();
+
+function publicUser(user) {
+  const { password: _password, ...safeUser } = user;
+  return safeUser;
+}
+
 function send(res, status, data, extraHeaders = {}) {
   res.writeHead(status, { "Content-Type": "application/json", "X-Mock-Api": "true", ...extraHeaders });
   res.end(JSON.stringify(data));
@@ -115,7 +122,7 @@ function cors(req, res) {
   if (origin) res.setHeader("Access-Control-Allow-Origin", origin);
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
 }
 async function body(req) {
   let raw = "";
@@ -132,19 +139,54 @@ const server = createServer(async (req, res) => {
   if (req.method === "GET" && url.pathname === "/mock-api/health") return send(res, 200, { ok: true, mock: true });
   if (req.method === "POST" && url.pathname === "/mock-api/auth/login") {
     const { email, password } = await body(req);
-    const user = users.find((item) => item.email === email);
-    if (!user || password !== DEMO_PASSWORD) return send(res, 401, { message: "邮箱或密码不正确" });
+    const user = users.find((item) => item.email.toLowerCase() === String(email).toLowerCase());
+    if (!user || password !== (user.password ?? DEMO_PASSWORD)) return send(res, 401, { message: "邮箱或密码不正确" });
     const token = randomBytes(24).toString("hex");
     sessions.set(token, user);
     return send(
       res,
       200,
-      { user },
+      { user: publicUser(user) },
+      { "Set-Cookie": `acme_mock_session=${token}; HttpOnly; Path=/; SameSite=Lax; Max-Age=86400` },
+    );
+  }
+  if (req.method === "POST" && url.pathname === "/mock-api/auth/register") {
+    const { name, email, password } = await body(req);
+    if (!name || name.trim().length < 2 || !email || !password || password.length < 6) {
+      return send(res, 400, { message: "请检查注册信息" });
+    }
+    if (users.some((item) => item.email.toLowerCase() === String(email).toLowerCase())) {
+      return send(res, 409, { message: "该邮箱已注册" });
+    }
+    const user = {
+      id: `usr_${randomBytes(6).toString("hex")}`,
+      name: name.trim(),
+      email: String(email).trim().toLowerCase(),
+      role: "editor",
+      roles: ["editor"],
+      permissions: [
+        "app:overview:view",
+        "app:examples:view",
+        "app:exceptions:view",
+        "app:profile:view",
+        "app:settings:view",
+        "app:user:list",
+      ],
+      password,
+    };
+    users.push(user);
+    mockUsers.push({ id: user.id, name: user.name, email: user.email, role: "编辑者", status: "待审核" });
+    const token = randomBytes(24).toString("hex");
+    sessions.set(token, user);
+    return send(
+      res,
+      201,
+      { user: publicUser(user) },
       { "Set-Cookie": `acme_mock_session=${token}; HttpOnly; Path=/; SameSite=Lax; Max-Age=86400` },
     );
   }
   if (req.method === "GET" && url.pathname === "/mock-api/auth/me") {
-    return currentUser ? send(res, 200, { user: currentUser }) : send(res, 401, { message: "未登录" });
+    return currentUser ? send(res, 200, { user: publicUser(currentUser) }) : send(res, 401, { message: "未登录" });
   }
   if (req.method === "GET" && url.pathname === "/mock-api/auth/menus") {
     if (!currentUser) return send(res, 401, { message: "未登录" });
@@ -163,8 +205,59 @@ const server = createServer(async (req, res) => {
     if (!currentUser) return send(res, 401, { message: "未登录" });
     return send(res, 200, { revenue: "¥128,430", orders: 1248, customers: 8420, conversion: "12.8%" });
   }
-  if (req.method === "GET" && url.pathname === "/mock-api/users") {
+  if (url.pathname === "/mock-api/profile/settings" && ["GET", "PUT"].includes(req.method)) {
     if (!currentUser) return send(res, 401, { message: "未登录" });
+    if (req.method === "GET") {
+      return send(
+        res,
+        200,
+        profileSettings.get(currentUser.id) ?? {
+          orderNotifications: true,
+          memberNotifications: true,
+          weeklySummary: false,
+        },
+      );
+    }
+    const settings = await body(req);
+    const next = {
+      orderNotifications: Boolean(settings.orderNotifications),
+      memberNotifications: Boolean(settings.memberNotifications),
+      weeklySummary: Boolean(settings.weeklySummary),
+    };
+    profileSettings.set(currentUser.id, next);
+    return send(res, 200, next);
+  }
+  if (req.method === "PUT" && url.pathname === "/mock-api/profile") {
+    if (!currentUser) return send(res, 401, { message: "未登录" });
+    const input = await body(req);
+    if (!input.name || String(input.name).trim().length < 2)
+      return send(res, 400, { message: "姓名至少需要 2 个字符" });
+    currentUser.name = String(input.name).trim();
+    return send(res, 200, { user: publicUser(currentUser) });
+  }
+  if (["GET", "POST"].includes(req.method) && url.pathname === "/mock-api/users") {
+    if (!currentUser) return send(res, 401, { message: "未登录" });
+    const requiredPermission = req.method === "POST" ? "app:user:add" : "app:user:list";
+    if (!currentUser.permissions.includes("*") && !currentUser.permissions.includes(requiredPermission)) {
+      return send(res, 403, { message: "没有用户管理权限" });
+    }
+    if (req.method === "POST") {
+      const input = await body(req);
+      if (!input.name || !input.email || !input.role || !input.status)
+        return send(res, 400, { message: "请填写完整用户信息" });
+      if (mockUsers.some((item) => item.email.toLowerCase() === String(input.email).toLowerCase())) {
+        return send(res, 409, { message: "该邮箱已存在" });
+      }
+      const user = {
+        id: `usr_${randomBytes(6).toString("hex")}`,
+        name: String(input.name).trim(),
+        email: String(input.email).trim().toLowerCase(),
+        role: input.role === "admin" ? "管理员" : "编辑者",
+        status: input.status,
+      };
+      mockUsers.push(user);
+      return send(res, 201, { user });
+    }
     const searchParams = url.searchParams;
     const page = Math.max(1, Number(searchParams.get("page") ?? 1) || 1);
     const pageSize = Math.min(50, Math.max(1, Number(searchParams.get("pageSize") ?? 10) || 10));
@@ -179,6 +272,35 @@ const server = createServer(async (req, res) => {
       page,
       pageSize,
     });
+  }
+  const userMatch = url.pathname.match(/^\/mock-api\/users\/([^/]+)$/);
+  if (userMatch && ["PUT", "DELETE"].includes(req.method)) {
+    if (!currentUser) return send(res, 401, { message: "未登录" });
+    if (!currentUser.permissions.includes("*")) return send(res, 403, { message: "没有用户管理权限" });
+    const index = mockUsers.findIndex((item) => item.id === decodeURIComponent(userMatch[1]));
+    if (index < 0) return send(res, 404, { message: "用户不存在" });
+    if (req.method === "DELETE") {
+      if (mockUsers[index].id === currentUser.id) return send(res, 400, { message: "不能删除当前登录用户" });
+      mockUsers.splice(index, 1);
+      return send(res, 200, { ok: true });
+    }
+    const input = await body(req);
+    if (
+      input.email &&
+      mockUsers.some(
+        (item, itemIndex) => itemIndex !== index && item.email.toLowerCase() === String(input.email).toLowerCase(),
+      )
+    ) {
+      return send(res, 409, { message: "该邮箱已存在" });
+    }
+    mockUsers[index] = {
+      ...mockUsers[index],
+      ...(input.name ? { name: String(input.name).trim() } : {}),
+      ...(input.email ? { email: String(input.email).trim().toLowerCase() } : {}),
+      ...(input.role ? { role: input.role === "admin" ? "管理员" : "编辑者" } : {}),
+      ...(input.status ? { status: input.status } : {}),
+    };
+    return send(res, 200, { user: mockUsers[index] });
   }
   return send(res, 404, { message: "Mock API route not found" });
 });
