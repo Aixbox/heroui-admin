@@ -189,7 +189,7 @@ export default function AppLayout() {
         className={collapsed ? "lg:pl-16" : "lg:pl-64"}
         style={{ transition: "padding-left 280ms cubic-bezier(0.4, 0, 0.2, 1)" }}
       >
-        <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-separator bg-surface/60 pr-4 pl-3 backdrop-blur-lg sm:pr-8 sm:pl-4">
+        <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-separator bg-surface/60 pr-4 pl-3 backdrop-blur-lg sm:pr-8 sm:pl-4">
           <div className="flex min-w-0 items-center gap-2">
             <Button
               isIconOnly
@@ -269,7 +269,13 @@ export default function AppLayout() {
                   <AppIcon className="size-4" name="bell" />
                 </Button>
                 {unreadCount > 0 && (
-                  <Badge color="danger" placement="top-right" size="sm">
+                  <Badge
+                    className="semantic-status-badge"
+                    color="danger"
+                    placement="top-right"
+                    size="sm"
+                    variant="soft"
+                  >
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </Badge>
                 )}

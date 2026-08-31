@@ -90,50 +90,45 @@
   }
 }
 
-/* Chip soft 变体增浓：官方 soft 底色 tint 仅 15%/12% 且文字混灰，对状态徽章过淡。
-   此处将底色 tint 提至 30%/24%、文字用纯主题色；unlayered 规则优先于 @layer components 的库样式 */
+/* Chip soft 变体统一使用与标签页选中态一致的 12% 底色浓度。 */
 .chip--soft.chip--accent {
-  --chip-bg: color-mix(in oklab, var(--accent) 30%, transparent);
+  --chip-bg: color-mix(in oklab, var(--accent) 12%, transparent);
   --chip-fg: var(--accent);
 }
 .chip--soft.chip--success {
-  --chip-bg: color-mix(in oklab, var(--success) 30%, transparent);
+  --chip-bg: color-mix(in oklab, var(--success) 12%, transparent);
   --chip-fg: var(--success);
 }
 .chip--soft.chip--warning {
-  --chip-bg: color-mix(in oklab, var(--warning) 30%, transparent);
+  --chip-bg: color-mix(in oklab, var(--warning) 12%, transparent);
   --chip-fg: var(--warning);
 }
 .chip--soft.chip--danger {
-  --chip-bg: color-mix(in oklab, var(--danger) 30%, transparent);
+  --chip-bg: color-mix(in oklab, var(--danger) 12%, transparent);
   --chip-fg: var(--danger);
 }
 .chip--soft.chip--default {
-  --chip-bg: color-mix(in oklab, var(--default) 30%, transparent);
+  --chip-bg: color-mix(in oklab, var(--default) 12%, transparent);
 }
 .dark .chip--soft.chip--accent {
-  --chip-bg: color-mix(in oklab, var(--accent) 24%, transparent);
+  --chip-bg: color-mix(in oklab, var(--accent) 12%, transparent);
 }
 .dark .chip--soft.chip--success {
-  --chip-bg: color-mix(in oklab, var(--success) 24%, transparent);
-}
-.dark .chip--soft.chip--warning {
-  --chip-bg: color-mix(in oklab, var(--warning) 24%, transparent);
-}
-.dark .chip--soft.chip--danger {
-  --chip-bg: color-mix(in oklab, var(--danger) 24%, transparent);
-}
-.dark .chip--soft.chip--default {
-  --chip-bg: color-mix(in oklab, var(--default) 24%, transparent);
-}
-
-/* 订单状态与标签页选中态保持一致：各语义色使用 12% 浓度。 */
-.order-status-chip.chip--soft.chip--success {
   --chip-bg: color-mix(in oklab, var(--success) 12%, transparent);
 }
-.order-status-chip.chip--soft.chip--warning {
+.dark .chip--soft.chip--warning {
   --chip-bg: color-mix(in oklab, var(--warning) 12%, transparent);
 }
-.order-status-chip.chip--soft.chip--danger {
+.dark .chip--soft.chip--danger {
   --chip-bg: color-mix(in oklab, var(--danger) 12%, transparent);
+}
+.dark .chip--soft.chip--default {
+  --chip-bg: color-mix(in oklab, var(--default) 12%, transparent);
+}
+
+/* 通知徽标同样使用 12% 的 danger 底色，同时保留语义色文字。 */
+.semantic-status-badge.badge--soft.badge--danger {
+  --badge-bg: color-mix(in oklab, var(--danger) 12%, transparent);
+  --badge-fg: var(--danger);
+  --badge-border: color-mix(in oklab, var(--danger) 12%, transparent);
 }

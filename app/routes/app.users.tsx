@@ -14,6 +14,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 const PAGE_SIZE = 10;
+const statusColor = { 活跃: "success", 待审核: "warning", 停用: "danger" } as const;
 
 /** 通用管理页参考模板：搜索（防抖）+ react-query 分页表格 + 按钮级权限，后续管理页按此结构复制 */
 export default function UsersPage() {
@@ -77,7 +78,7 @@ export default function UsersPage() {
                     </Table.Cell>
                     <Table.Cell>{user.role}</Table.Cell>
                     <Table.Cell>
-                      <Chip color={user.status === "活跃" ? "success" : "warning"} variant="soft">
+                      <Chip color={statusColor[user.status as keyof typeof statusColor] ?? "default"} variant="soft">
                         <Chip.Label>{user.status}</Chip.Label>
                       </Chip>
                     </Table.Cell>

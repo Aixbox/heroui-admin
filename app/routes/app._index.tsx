@@ -269,11 +269,7 @@ export default function DashboardPage() {
                   <Table.Cell>{order.product}</Table.Cell>
                   <Table.Cell>{order.amount}</Table.Cell>
                   <Table.Cell>
-                    <Chip
-                      className="order-status-chip"
-                      color={statusColor[order.status as keyof typeof statusColor]}
-                      variant="soft"
-                    >
+                    <Chip color={statusColor[order.status as keyof typeof statusColor]} variant="soft">
                       <Chip.Label>{order.status}</Chip.Label>
                     </Chip>
                   </Table.Cell>
