@@ -1,5 +1,5 @@
 import { Avatar, Badge, Breadcrumbs, Button, Drawer, Link, Popover, useOverlayState, useTheme } from "@heroui/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import {
   Outlet,
   useLoaderData,
@@ -189,7 +189,7 @@ export default function AppLayout() {
         className={collapsed ? "lg:pl-16" : "lg:pl-64"}
         style={{ transition: "padding-left 280ms cubic-bezier(0.4, 0, 0.2, 1)" }}
       >
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-separator bg-surface/60 pr-4 pl-3 backdrop-blur-lg sm:pr-8 sm:pl-4">
+        <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-separator bg-surface/60 pr-4 pl-3 backdrop-blur-lg sm:pr-8 sm:pl-4">
           <div className="flex min-w-0 items-center gap-2">
             <Button
               isIconOnly
@@ -354,34 +354,45 @@ export default function AppLayout() {
           </div>
         </header>
         {/* 多标签页栏：记录访问过的页面，点击切换、悬停出现关闭按钮；概览页签固定 */}
-        <div className="flex items-center gap-1.5 overflow-x-auto border-b border-separator bg-background/60 px-3 py-1.5 sm:px-4">
-          {tabs.map((tab) => {
+        <div className="sticky top-14 z-10 flex items-center gap-0 overflow-x-auto border-b border-separator bg-surface/60 px-3 py-1 backdrop-blur-lg sm:px-4">
+          {tabs.map((tab, index) => {
             const isActive = tab.path === location.pathname;
             return (
-              <div
-                key={tab.path}
-                className={`group flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm transition ${
-                  isActive
-                    ? "bg-accent/12 font-medium text-accent"
-                    : "text-muted hover:bg-surface-secondary hover:text-foreground"
-                }`}
-              >
-                <button type="button" className="cursor-pointer" onClick={() => navigate(tab.path)}>
-                  {t(tab.label)}
-                </button>
-                {tab.path !== "/app" && (
-                  <button
-                    type="button"
-                    aria-label={`${t("关闭标签页")} ${t(tab.label)}`}
-                    className={`cursor-pointer rounded p-0.5 transition hover:bg-default ${
-                      isActive ? "opacity-70" : "opacity-0 group-hover:opacity-70"
-                    }`}
-                    onClick={() => closeTab(tab.path)}
+              <Fragment key={tab.path}>
+                {index > 0 && (
+                  <svg
+                    aria-hidden="true"
+                    className="mx-1 h-5 w-px shrink-0 self-center text-separator"
+                    shapeRendering="crispEdges"
+                    viewBox="0 0 1 20"
                   >
-                    <AppIcon className="size-3" name="close" />
-                  </button>
+                    <rect width="1" height="20" fill="currentColor" />
+                  </svg>
                 )}
-              </div>
+                <div
+                  className={`group flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm transition ${
+                    isActive
+                      ? "bg-accent/12 font-medium text-accent"
+                      : "text-muted hover:bg-surface-secondary hover:text-foreground"
+                  }`}
+                >
+                  <button type="button" className="cursor-pointer" onClick={() => navigate(tab.path)}>
+                    {t(tab.label)}
+                  </button>
+                  {tab.path !== "/app" && (
+                    <button
+                      type="button"
+                      aria-label={`${t("关闭标签页")} ${t(tab.label)}`}
+                      className={`cursor-pointer rounded transition hover:bg-default ${
+                        isActive ? "opacity-70" : "opacity-0 group-hover:opacity-70"
+                      }`}
+                      onClick={() => closeTab(tab.path)}
+                    >
+                      <AppIcon className="size-3" name="close" />
+                    </button>
+                  )}
+                </div>
+              </Fragment>
             );
           })}
         </div>

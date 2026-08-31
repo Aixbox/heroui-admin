@@ -126,3 +126,14 @@
 .dark .chip--soft.chip--default {
   --chip-bg: color-mix(in oklab, var(--default) 24%, transparent);
 }
+
+/* 订单状态与标签页选中态保持一致：各语义色使用 12% 浓度。 */
+.order-status-chip.chip--soft.chip--success {
+  --chip-bg: color-mix(in oklab, var(--success) 12%, transparent);
+}
+.order-status-chip.chip--soft.chip--warning {
+  --chip-bg: color-mix(in oklab, var(--warning) 12%, transparent);
+}
+.order-status-chip.chip--soft.chip--danger {
+  --chip-bg: color-mix(in oklab, var(--danger) 12%, transparent);
+}
