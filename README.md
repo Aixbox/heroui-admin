@@ -1,4 +1,4 @@
-# Acme Admin
+# Heroui Admin
 
 基于 React Router 7、HeroUI 3 和 Mock API 的通用管理系统前端模板。
 
